@@ -27,9 +27,9 @@ VALUES
 INSERT INTO TB_PRODUCT 
 	(PRD_CODE, PRD_NAME, PRD_PRICE, PRD_STOCK, BRN_ID, DPR_ID)
 VALUES 
-	('PRD---', 'Mysterious Product', 49.90, 10, 1, 1),
+	('PRDXYZ', 'Mysterious Product', 49.90, 10, 1, 1),
 	('PRD000', 'Something Beautiful', 79.90, 10, 2, 1),
-	('PRDAAA', 'Unknown Thing', 139.90, 10, 10, 1),
+	('PRDAAA', 'Unknown Thing', 139.90, 10, 1, 1),
 	('PRD100', 'Marvelous Token', 429.90, 10, 2, 2),
 	('PRDXXX', 'Strange Object', 699.90, 10, 1, 2),
 	('PRD999', 'Bizarre Device', 1000.00, 10, 2, 2)

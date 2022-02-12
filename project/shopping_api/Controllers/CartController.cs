@@ -44,5 +44,11 @@ namespace shopping_api.Controllers
         {
             return new CartHandler().RemoveAll(cartId);
         }
+
+        [HttpPut("{cartId}/product/{productId}/quantity/{quantity}")]
+        public Result<Cart> ChangeQuantity(int cartId, int productId, int quantity)
+        {
+            return new CartHandler().ChangeQuantity(cartId, productId, quantity);
+        }
     }
 }

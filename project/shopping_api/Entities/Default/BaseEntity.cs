@@ -7,9 +7,9 @@ namespace shopping_api.Entities.Default
     {
         private List<EntityFilter> QueryEntities { get; set; }
 
-        private List<QueryFilter> QueryFilters { get; set; }
+        private List<EntityField> QueryFilters { get; set; }
 
-        private List<QueryValue> QueryValues { get; set; }
+        private List<EntityField> QueryValues { get; set; }
         
         public string EntityName { get; set; }
 
@@ -39,12 +39,12 @@ namespace shopping_api.Entities.Default
 
         protected void AddQueryFilter(string _attribute, object _value)
         {
-            QueryFilters.Add(new QueryFilter(_attribute, _value));
+            QueryFilters.Add(new EntityField(_attribute, _value));
         }
 
         protected void AddQueryValue(string _attribute, object _value)
         {
-            QueryValues.Add(new QueryValue(_attribute, _value));
+            QueryValues.Add(new EntityField(_attribute, _value));
         }
 
         public string Insert()

@@ -33,6 +33,12 @@ namespace shopping_api.Controllers
             return new CartHandler().AddProduct(cartId, productId);
         }
 
+        [HttpPut("{cartId}/product/{productId}/quantity/{quantity}")]
+        public Result<Cart> ChangeQuantity(int cartId, int productId, int quantity)
+        {
+            return new CartHandler().ChangeQuantity(cartId, productId, quantity);
+        }
+
         [HttpDelete("{cartId}/product/{productId}")]
         public Result<Cart> RemoveProduct(int cartId, int productId)
         {
@@ -45,10 +51,16 @@ namespace shopping_api.Controllers
             return new CartHandler().RemoveAll(cartId);
         }
 
-        [HttpPut("{cartId}/product/{productId}/quantity/{quantity}")]
-        public Result<Cart> ChangeQuantity(int cartId, int productId, int quantity)
+        [HttpPut("{cartId}/coupon/{coupon}")]
+        public Result<Cart> ApplyCoupon(int cartId, string coupon)
         {
-            return new CartHandler().ChangeQuantity(cartId, productId, quantity);
+            return new CartHandler().ApplyCoupon(cartId, coupon);
+        }
+
+        [HttpDelete("{cartId}/coupon")]
+        public Result<Cart> ClearCoupon(int cartId)
+        {
+            return new CartHandler().ClearCoupon(cartId);
         }
     }
 }

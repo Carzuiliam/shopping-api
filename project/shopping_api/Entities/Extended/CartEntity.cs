@@ -127,7 +127,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _couponId = value;
-                    Entity.AddQueryFilter("CPN_ID", _userId);
+                    Entity.AddQueryFilter("CPN_ID", _couponId);
                 }
             }
         }
@@ -226,7 +226,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _couponId = value;
-                    Entity.AddQueryValue("CPN_ID", _userId);
+                    Entity.AddQueryValue("CPN_ID", _couponId);
                 }
             }
         }

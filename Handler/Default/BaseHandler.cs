@@ -12,7 +12,7 @@ namespace shopping_api.Handler.Default
         /// <summary>
         ///     Contains the connection string utilized to access the database.
         /// </summary>
-        protected static readonly string CONNECTION_STRING = "DataSource=D:/Projects/Source Codes/C#/CS-CartApi/project/shopping_api/Database/DataSource/db_main.sqlite";
+        protected static readonly string CONNECTION_STRING = "DataSource=D:/Projects/Source Codes/C#/CS-ShoppingApi/Database/DataSource/db_main.sqlite";
 
         /// <summary>
         ///     Contains the result of a request performed by this handler.

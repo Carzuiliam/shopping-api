@@ -6,16 +6,19 @@ using shopping_api.Utils;
 
 namespace shopping_api.Handler.Default
 {
-    public class DepartmentHandler : BaseHandler
+    /// <summary>
+    ///     Defines the corresponding handler for departments.
+    /// </summary>
+    public class DepartmentHandler : BaseHandler<Department>
     {
-        public Result<Department> Result { get; set; }
-
-        public DepartmentHandler()
-        {
-            Result = new();
-        }
-
-        public Result<Department> List()
+        /// <summary>
+        ///     Lists all the departments in the database.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A response with a list containing all the departments from the database.
+        /// </returns>
+        public Response<Department> List()
         {
             List<Department> departments = new();
 
@@ -53,7 +56,16 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Department> Get(int _departmentId)
+        /// <summary>
+        ///     Returns a specific department from the database.
+        /// </summary>
+        /// 
+        /// <param name="_departmentId">The ID of a department.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding department from the database (if it exists).
+        /// </returns>
+        public Response<Department> Get(int _departmentId)
         {
             List<Department> departments = new();
 

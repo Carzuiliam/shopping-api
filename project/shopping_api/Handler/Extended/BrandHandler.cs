@@ -6,16 +6,19 @@ using shopping_api.Utils;
 
 namespace shopping_api.Handler.Extended
 {
-    public class BrandHandler : BaseHandler
+    /// <summary>
+    ///     Defines the corresponding handler for brands.
+    /// </summary>
+    public class BrandHandler : BaseHandler<Brand>
     {
-        public Result<Brand> Result { get; set; }
-
-        public BrandHandler()
-        {
-            Result = new();
-        }
-
-        public Result<Brand> List()
+        /// <summary>
+        ///     Lists all the brands in the database.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A response with a list containing all the brands from the database.
+        /// </returns>
+        public Response<Brand> List()
         {
             List<Brand> brands = new();
 
@@ -54,7 +57,16 @@ namespace shopping_api.Handler.Extended
             return Result;
         }
 
-        public Result<Brand> Get(int _brandId)
+        /// <summary>
+        ///     Returns a specific brand from the database.
+        /// </summary>
+        /// 
+        /// <param name="_brandId">The ID of a brand.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding brand from the database (if it exists).
+        /// </returns>
+        public Response<Brand> Get(int _brandId)
         {
             List<Brand> brands = new();
 

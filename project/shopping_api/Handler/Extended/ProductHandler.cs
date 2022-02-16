@@ -2,20 +2,23 @@
 using shopping_api.Entities.Extended;
 using shopping_api.Models;
 using shopping_api.Utils;
-using Shopping_API.Entities.Filters;
+using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Handler.Default
 {
-    public class ProductHandler : BaseHandler
+    /// <summary>
+    ///     Defines the corresponding handler for products.
+    /// </summary>
+    public class ProductHandler : BaseHandler<Product>
     {
-        public Result<Product> Result { get; set; }
-
-        public ProductHandler()
-        {
-            Result = new();
-        }
-
-        public Result<Product> List()
+        /// <summary>
+        ///     Lists all the products in the database.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A response with a list containing all the products from the database.
+        /// </returns>
+        public Response<Product> List()
         {
             List<Product> products = new();
 
@@ -26,8 +29,8 @@ namespace shopping_api.Handler.Default
                     db.Open();
 
                     ProductEntity productEntity = new();
-                    productEntity.Relations.Bind(new BrandEntity(), EntityFilter.RelationType.FULL);
-                    productEntity.Relations.Bind(new DepartmentEntity(), EntityFilter.RelationType.FULL);
+                    productEntity.Relations.Bind(new BrandEntity(), EntityRelation.RelationMode.FULL);
+                    productEntity.Relations.Bind(new DepartmentEntity(), EntityRelation.RelationMode.FULL);
 
                     SqliteCommand command = db.CreateCommand();
                     command.CommandText = productEntity.Join();
@@ -69,7 +72,16 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Product> Get(int _productId)
+        /// <summary>
+        ///     Returns a specific product from the database.
+        /// </summary>
+        /// 
+        /// <param name="_productId">The ID of a product.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding product from the database (if it exists).
+        /// </returns>
+        public Response<Product> Get(int _productId)
         {
             List<Product> products = new();
 
@@ -80,8 +92,8 @@ namespace shopping_api.Handler.Default
                     db.Open();
 
                     ProductEntity productEntity = new();
-                    productEntity.Relations.Bind(new BrandEntity(), EntityFilter.RelationType.FULL);
-                    productEntity.Relations.Bind(new DepartmentEntity(), EntityFilter.RelationType.FULL);
+                    productEntity.Relations.Bind(new BrandEntity(), EntityRelation.RelationMode.FULL);
+                    productEntity.Relations.Bind(new DepartmentEntity(), EntityRelation.RelationMode.FULL);
                     productEntity.Filters.Id = _productId;
 
                     SqliteCommand command = db.CreateCommand();

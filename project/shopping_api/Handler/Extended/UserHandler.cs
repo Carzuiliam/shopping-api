@@ -5,16 +5,19 @@ using shopping_api.Utils;
 
 namespace shopping_api.Handler.Default
 {
-    public class UserHandler : BaseHandler
+    /// <summary>
+    ///     Defines the corresponding handler for users.
+    /// </summary>
+    public class UserHandler : BaseHandler<User>
     {
-        public Result<User> Result { get; set; }
-
-        public UserHandler()
-        {
-            Result = new();
-        }
-
-        public Result<User> List()
+        /// <summary>
+        ///     Lists all the users in the database.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A response with a list containing all the users from the database.
+        /// </returns>
+        public Response<User> List()
         {
             List<User> users = new();
 
@@ -53,7 +56,16 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<User> Get(int _userId)
+        /// <summary>
+        ///     Returns a specific user from the database.
+        /// </summary>
+        /// 
+        /// <param name="_userId">The ID of a user.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding user from the database (if it exists).
+        /// </returns>
+        public Response<User> Get(int _userId)
         {
             List<User> users = new();
 

@@ -2,20 +2,23 @@
 using shopping_api.Entities.Extended;
 using shopping_api.Models;
 using shopping_api.Utils;
-using Shopping_API.Entities.Filters;
+using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Handler.Default
 {
-    public class CartHandler : BaseHandler
+    /// <summary>
+    ///     Defines the corresponding handler for carts.
+    /// </summary>
+    public class CartHandler : BaseHandler<Cart>
     {
-        public Result<Cart> Result { get; set; }
-
-        public CartHandler()
-        {
-            Result = new();
-        }
-
-        public Result<Cart> List()
+        /// <summary>
+        ///     Lists all the carts in the database.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A response with a list containing all the brands from the database.
+        /// </returns>
+        public Response<Cart> List()
         {
             List<Cart> carts = new();
 
@@ -26,8 +29,8 @@ namespace shopping_api.Handler.Default
                     db.Open();
 
                     CartEntity cartEntity = new();
-                    cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                    cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                    cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                    cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
 
                     SqliteCommand command = db.CreateCommand();
                     command.CommandText = cartEntity.Join();
@@ -61,7 +64,7 @@ namespace shopping_api.Handler.Default
                             };
 
                             ProductCartEntity productCartEntity = new();
-                            productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                            productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                             productCartEntity.Filters.CartId = cart.Id;
 
                             SqliteCommand subCommand = db.CreateCommand();
@@ -107,7 +110,16 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> Get(int _cartId)
+        /// <summary>
+        ///     Returns a specific cart from the database.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of a cart.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database (if it exists).
+        /// </returns>
+        public Response<Cart> Get(int _cartId)
         {
             List<Cart> carts = new();
 
@@ -118,8 +130,8 @@ namespace shopping_api.Handler.Default
                     db.Open();
 
                     CartEntity cartEntity = new();
-                    cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                    cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                    cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                    cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                     cartEntity.Filters.Id = _cartId;
 
                     SqliteCommand command = db.CreateCommand();
@@ -154,7 +166,7 @@ namespace shopping_api.Handler.Default
                             };
 
                             ProductCartEntity productCartEntity = new();
-                            productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                            productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                             productCartEntity.Filters.CartId = cart.Id;
 
                             SqliteCommand subCommand = db.CreateCommand();
@@ -200,7 +212,19 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> GetFromUser(int _userId)
+        /// <summary>
+        ///     Returns a specific cart from the database. This method differs from the
+        /// <see cref="Get(int)"/> method because this one finds a cart based on a user ID.
+        /// This method also creates a new cart for the given user if no cart was originally
+        /// found.
+        /// </summary>
+        /// 
+        /// <param name="_userId">The ID of a user.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database (new or existing).
+        /// </returns>
+        public Response<Cart> GetFromUser(int _userId)
         {
             List<Cart> carts = new();
 
@@ -214,8 +238,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.UserId = _userId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -252,7 +276,7 @@ namespace shopping_api.Handler.Default
                                 };
 
                                 ProductCartEntity productCartEntity = new();
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 SqliteCommand subCommand = db.CreateCommand();
@@ -305,7 +329,7 @@ namespace shopping_api.Handler.Default
                                         );
                                 }
 
-                                cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
+                                cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
                                 cartEntity.Filters.UserId = _userId;
 
                                 subCommand = db.CreateCommand();
@@ -352,7 +376,18 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> AddProduct(int _cartId, int _productId)
+        /// <summary>
+        ///     Adds a product to a cart. The product must exists in the database, and it
+        /// must not be added previously to the same cart.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// <param name="_productId">The ID of the product.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database (new or existing).
+        /// </returns>
+        public Response<Cart> AddProduct(int _cartId, int _productId)
         {
             List<Cart> carts = new();
 
@@ -366,8 +401,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -511,7 +546,7 @@ namespace shopping_api.Handler.Default
                                 }
 
                                 //  ...gets the (updated) list of the products on the cart...
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 subCommand = db.CreateCommand();
@@ -603,7 +638,19 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> ChangeQuantity(int _cartId, int _productId, int _quantity)
+        /// <summary>
+        ///     Changes the quantity of a product in a cart. The quantity must not be zero, 
+        /// negative, or greater than the original stock of the product.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// <param name="_productId">The ID of the product.</param>
+        /// <param name="_quantity">The new quantity for the product.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database.
+        /// </returns>
+        public Response<Cart> ChangeQuantity(int _cartId, int _productId, int _quantity)
         {
             List<Cart> carts = new();
 
@@ -633,8 +680,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -672,7 +719,7 @@ namespace shopping_api.Handler.Default
 
                                 //  ...finds all the products from the cart...
                                 ProductCartEntity productCartEntity = new();
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 SqliteCommand subCommand = db.CreateCommand();
@@ -782,7 +829,7 @@ namespace shopping_api.Handler.Default
                                 //  ...gets the (updated) list of the products on the cart...
                                 cart.ProductCarts.Clear();
 
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 subCommand = db.CreateCommand();
@@ -874,7 +921,18 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> RemoveProduct(int _cartId, int _productId)
+        /// <summary>
+        ///     Removes a product to a cart. The product must exists in the database, and it
+        /// must be added to the cart before.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// <param name="_productId">The ID of the product.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database.
+        /// </returns>
+        public Response<Cart> RemoveProduct(int _cartId, int _productId)
         {
             List<Cart> carts = new();
 
@@ -888,8 +946,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -1044,7 +1102,7 @@ namespace shopping_api.Handler.Default
                                 }
 
                                 //  ...gets the (updated) list of the products on the cart...
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 subCommand = db.CreateCommand();
@@ -1136,7 +1194,17 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> RemoveAll(int _cartId)
+        /// <summary>
+        ///     Removes all the product of a cart. The cart will not be deleted from the
+        /// database, though.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database.
+        /// </returns>
+        public Response<Cart> RemoveAll(int _cartId)
         {
             List<Cart> carts = new();
 
@@ -1150,8 +1218,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -1189,7 +1257,7 @@ namespace shopping_api.Handler.Default
 
                                 //  ...finds all the products from the cart...
                                 ProductCartEntity productCartEntity = new();
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 SqliteCommand subCommand = db.CreateCommand();
@@ -1335,7 +1403,18 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> ApplyCoupon(int _cartId, string _coupon)
+        /// <summary>
+        ///     Applies a coupon to a cart, adding a discount to it. The coupon must exists,
+        /// and any coupon added previously will be discarded.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// <param name="_coupon">The code of the coupon.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database.
+        /// </returns>
+        public Response<Cart> ApplyCoupon(int _cartId, string _coupon)
         {
             List<Cart> carts = new();
 
@@ -1349,8 +1428,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -1448,7 +1527,7 @@ namespace shopping_api.Handler.Default
 
                                 //  ...gets the list of the products on the cart...
                                 ProductCartEntity productCartEntity = new();
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 subCommand = db.CreateCommand();
@@ -1540,7 +1619,16 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
-        public Result<Cart> ClearCoupon(int _cartId)
+        /// <summary>
+        ///     Clears the coupon from a cart.
+        /// </summary>
+        /// 
+        /// <param name="_cartId">The ID of the cart.</param>
+        /// 
+        /// <returns>
+        ///     A response with the corresponding cart from the database.
+        /// </returns>
+        public Response<Cart> ClearCoupon(int _cartId)
         {
             List<Cart> carts = new();
 
@@ -1554,8 +1642,8 @@ namespace shopping_api.Handler.Default
                     {
                         //  First, searches the cart.
                         CartEntity cartEntity = new();
-                        cartEntity.Relations.Bind(new UserEntity(), EntityFilter.RelationType.FULL);
-                        cartEntity.Relations.Bind(new CouponEntity(), EntityFilter.RelationType.OPTIONAL);
+                        cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                        cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
                         cartEntity.Filters.Id = _cartId;
 
                         SqliteCommand command = db.CreateCommand();
@@ -1623,7 +1711,7 @@ namespace shopping_api.Handler.Default
 
                                 //  ...gets the list of the products on the cart...
                                 ProductCartEntity productCartEntity = new();
-                                productCartEntity.Relations.Bind(new ProductEntity(), EntityFilter.RelationType.FULL);
+                                productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
                                 productCartEntity.Filters.CartId = cart.Id;
 
                                 subCommand = db.CreateCommand();
@@ -1715,11 +1803,26 @@ namespace shopping_api.Handler.Default
             return Result;
         }
 
+        /// <summary>
+        ///     Estimates the subtotal for a cart.
+        /// </summary>
+        /// 
+        /// <param name="_cart">The given cart.</param>
+        /// 
+        /// <returns>A decimal representing the subtotal of the cart.</returns>
         private static decimal EstimateSubtotal(Cart _cart)
         {
             return _cart.ProductCarts.Sum(p => p.Total);
         }
 
+        /// <summary>
+        ///     Estimates the shipping cost for a cart. The shipping cost changes
+        /// depending of the products in the cart.
+        /// </summary>
+        /// 
+        /// <param name="_cart">The given cart.</param>
+        /// 
+        /// <returns>A decimal representing the shipping of the cart.</returns>
         private static decimal EstimateShipping(Cart _cart)
         {
             decimal shipping = 0;
@@ -1753,6 +1856,13 @@ namespace shopping_api.Handler.Default
             return shipping;
         }
 
+        /// <summary>
+        ///     Estimates the discount for a cart (generally given by a coupon).
+        /// </summary>
+        /// 
+        /// <param name="_cart">The given cart.</param>
+        /// 
+        /// <returns>A decimal representing the discount of the cart.</returns>
         private static decimal EstimateDiscount(Cart _cart)
         {
             decimal discount = 0;
@@ -1765,6 +1875,13 @@ namespace shopping_api.Handler.Default
             return discount;
         }
 
+        /// <summary>
+        ///     Formats the coupon code in order to avoid any text conflicts.
+        /// </summary>
+        /// 
+        /// <param name="_coupon">The code of the coupon.</param>
+        /// 
+        /// <returns>The code of the coupon, formatted.</returns>
         private static string FormatCoupon(string _coupon)
         {
             return _coupon.ToUpper().Trim();

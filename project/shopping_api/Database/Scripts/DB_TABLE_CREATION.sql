@@ -1,20 +1,20 @@
---================ TABLE SCRIPT CREATION ==================
+--=========================================================
+--				TABLE CREATION SCRIPT 					  
+--=========================================================
+
+-----------------------------------------------------------
+--						Brand
+-----------------------------------------------------------
+
 CREATE TABLE TB_BRAND (
 	BRN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
 	BRN_CODE TEXT(30) NOT NULL,
 	BRN_NAME TEXT(30) NOT NULL
 )
 
-CREATE TABLE TB_DEPARTMENT (
-	DPR_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-	DPR_NAME TEXT(50) NOT NULL
-)
-
-CREATE TABLE TB_USER (
-	USR_ID INTEGER PRIMARY KEY AUTOINCREMENT,
-	USR_USERNAME TEXT(20) NOT NULL,
-	USR_NAME TEXT(30) NOT NULL
-)
+-----------------------------------------------------------
+--						Coupon
+-----------------------------------------------------------
 
 CREATE TABLE TB_COUPON (
 	CPN_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,6 +22,29 @@ CREATE TABLE TB_COUPON (
 	CPN_DESCRIPTION TEXT(30) NOT NULL,
 	CPN_DISCOUNT DECIMAL(10, 2) NOT NULL DEFAULT 0
 )
+
+-----------------------------------------------------------
+--						Department
+-----------------------------------------------------------
+
+CREATE TABLE TB_DEPARTMENT (
+	DPR_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+	DPR_NAME TEXT(50) NOT NULL
+)
+
+-----------------------------------------------------------
+--						User
+-----------------------------------------------------------
+
+CREATE TABLE TB_USER (
+	USR_ID INTEGER PRIMARY KEY AUTOINCREMENT,
+	USR_USERNAME TEXT(20) NOT NULL,
+	USR_NAME TEXT(30) NOT NULL
+)
+
+-----------------------------------------------------------
+--						Product
+-----------------------------------------------------------
 
 CREATE TABLE TB_PRODUCT (
 	PRD_ID INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +58,10 @@ CREATE TABLE TB_PRODUCT (
 	FOREIGN KEY(DPR_ID) REFERENCES TB_DEPARTMENT (DPR_ID)
 )
 
+-----------------------------------------------------------
+--						ProductCart
+-----------------------------------------------------------
+
 CREATE TABLE TB_CART (
 	CRT_ID INTEGER PRIMARY KEY AUTOINCREMENT,
 	CRT_SUBTOTAL DECIMAL(10, 2) NOT NULL DEFAULT 0,
@@ -47,6 +74,10 @@ CREATE TABLE TB_CART (
 	FOREIGN KEY(USR_ID) REFERENCES TB_USER(USR_ID),
 	FOREIGN KEY(CPN_ID) REFERENCES TB_COUPON(CPN_ID)
 )
+
+-----------------------------------------------------------
+--						Brand
+-----------------------------------------------------------
 
 CREATE TABLE TB_PRODUCT_CART (
 	PRC_ID INTEGER PRIMARY KEY AUTOINCREMENT,

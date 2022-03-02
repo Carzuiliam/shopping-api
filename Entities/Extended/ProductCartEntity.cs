@@ -1,4 +1,6 @@
-﻿using shopping_api.Entities.Default;
+﻿using Microsoft.Data.Sqlite;
+using shopping_api.Entities.Default;
+using shopping_api.Models;
 using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Entities.Extended
@@ -65,7 +67,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -110,7 +112,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddQueryFilter("PRC_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("PRC_ID", _id));
                 }
             }
 
@@ -124,7 +126,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _price = value;
-                    Entity.AddQueryFilter("PRC_PRICE", _price);
+                    Entity.QueryFilters.Add(new EntityField("PRC_PRICE", _price));
                 }
             }
 
@@ -138,7 +140,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _quantity = value;
-                    Entity.AddQueryFilter("PRC_QUANTITY", _quantity);
+                    Entity.QueryFilters.Add(new EntityField("PRC_QUANTITY", _quantity));
                 }
             }
 
@@ -152,7 +154,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _total = value;
-                    Entity.AddQueryFilter("PRC_TOTAL", _total);
+                    Entity.QueryFilters.Add(new EntityField("PRC_TOTAL", _total));
                 }
             }
 
@@ -166,7 +168,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _addedAt = value;
-                    Entity.AddQueryFilter("PRC_ADDED_AT", _addedAt);
+                    Entity.QueryFilters.Add(new EntityField("PRC_ADDED_AT", _addedAt));
                 }
             }
 
@@ -180,7 +182,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _cartId = value;
-                    Entity.AddQueryFilter("CRT_ID", _cartId);
+                    Entity.QueryFilters.Add(new EntityField("CRT_ID", _cartId));
                 }
             }
 
@@ -194,7 +196,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _productId = value;
-                    Entity.AddQueryFilter("PRD_ID", _productId);
+                    Entity.QueryFilters.Add(new EntityField("PRD_ID", _productId));
                 }
             }
         }
@@ -240,7 +242,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("PRC_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("PRC_ID", _id));
                 }
             }
 
@@ -254,7 +256,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _price = value;
-                    Entity.AddFieldValue("PRC_PRICE", _price);
+                    Entity.FieldValues.Add(new EntityField("PRC_PRICE", _price));
                 }
             }
 
@@ -268,7 +270,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _quantity = value;
-                    Entity.AddFieldValue("PRC_QUANTITY", _quantity);
+                    Entity.FieldValues.Add(new EntityField("PRC_QUANTITY", _quantity));
                 }
             }
 
@@ -282,7 +284,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _total = value;
-                    Entity.AddFieldValue("PRC_TOTAL", _total);
+                    Entity.FieldValues.Add(new EntityField("PRC_TOTAL", _total));
                 }
             }
 
@@ -296,7 +298,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _addedAt = value;
-                    Entity.AddFieldValue("PRC_ADDED_AT", _addedAt);
+                    Entity.FieldValues.Add(new EntityField("PRC_ADDED_AT", _addedAt));
                 }
             }
 
@@ -310,7 +312,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _cartId = value;
-                    Entity.AddFieldValue("CRT_ID", _cartId);
+                    Entity.FieldValues.Add(new EntityField("CRT_ID", _cartId));
                 }
             }
 
@@ -324,9 +326,66 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _productId = value;
-                    Entity.AddFieldValue("PRD_ID", _productId);
+                    Entity.FieldValues.Add(new EntityField("PRD_ID", _productId));
                 }
             }
+        }
+
+        /// <summary>
+        ///     Selects a list of "ProductCart" objects from the database, returning them as
+        /// products in a cart. Any filter applied before the call of this method will affect
+        /// the returned results.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A list with a set of products in a cart from the database.
+        /// </returns>
+        public List<ProductCart> Select()
+        {
+            List<ProductCart> productsCart = new();
+
+            using (var db = new SqliteConnection(CONNECTION_STRING))
+            {
+                db.Open();
+
+                SqliteCommand command = db.CreateCommand();
+                command.CommandText = IsBinded ? SQLJoin() : SQLSelect();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        ProductCart productCart = new()
+                        {
+                            Id = reader.GetInt32(0),
+                            Price = reader.GetDecimal(1),
+                            Quantity = reader.GetInt32(2),
+                            Total = reader.GetDecimal(3),
+                            AddedAt = reader.GetDateTime(4),
+                            CartId = reader.GetInt32(5),
+                            ProductId = reader.GetInt32(6)
+                        };
+
+                        if (IsBinded)
+                        {
+                            productCart.Product = new()
+                            {
+                                Id = reader.GetInt32(7),
+                                Code = reader.GetString(8),
+                                Name = reader.GetString(9),
+                                Price = reader.GetDecimal(10),
+                                Stock = reader.GetInt32(11)
+                            };
+                        }
+
+                        productsCart.Add(productCart);
+                    }
+                }
+            }
+
+            ClearParameters();
+
+            return productsCart;
         }
     }
 }

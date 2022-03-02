@@ -20,38 +20,16 @@ namespace shopping_api.Handler.Default
         /// </returns>
         public Response<Department> List()
         {
-            List<Department> departments = new();
-
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
-                {
-                    db.Open();
+                DepartmentEntity departmentEntity = new();
 
-                    DepartmentEntity departmentEntity = new();
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = departmentEntity.Select();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            departments.Add(new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Name = reader.GetString(1)
-                            });
-                        }
-                    }
-                }
+                Result.Data = departmentEntity.Select();
             }
             catch (Exception ex)
             {
                 Result.Status.Capture(ex);
             }
-
-            Result.Data = departments;
 
             return Result;
         }
@@ -67,39 +45,17 @@ namespace shopping_api.Handler.Default
         /// </returns>
         public Response<Department> Get(int _departmentId)
         {
-            List<Department> departments = new();
-
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
-                {
-                    db.Open();
+                DepartmentEntity departmentEntity = new();
+                departmentEntity.Filters.Id = _departmentId;
 
-                    DepartmentEntity departmentEntity = new();
-                    departmentEntity.Filters.Id = _departmentId;
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = departmentEntity.Select();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            departments.Add(new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Name = reader.GetString(1)
-                            });
-                        }                     
-                    }
-                }
+                Result.Data = departmentEntity.Select();
             }
             catch (Exception ex)
             {
                 Result.Status.Capture(ex);
             }
-
-            Result.Data = departments;
 
             return Result;
         }

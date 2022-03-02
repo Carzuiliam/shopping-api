@@ -1,4 +1,6 @@
-﻿using shopping_api.Entities.Default;
+﻿using Microsoft.Data.Sqlite;
+using shopping_api.Entities.Default;
+using shopping_api.Models;
 using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Entities.Extended
@@ -65,7 +67,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -105,7 +107,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddQueryFilter("DPR_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("DPR_ID", _id));
                 }
             }
 
@@ -119,7 +121,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddQueryFilter("DPR_NAME", _name);
+                    Entity.QueryFilters.Add(new EntityField("DPR_NAME", _name));
                 }
             }
         }
@@ -160,7 +162,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("DPR_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("DPR_ID", _id));
                 }
             }
 
@@ -174,9 +176,49 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddFieldValue("DPR_NAME", _name);
+                    Entity.FieldValues.Add(new EntityField("DPR_NAME", _name));
                 }
             }
+        }
+
+        /// <summary>
+        ///     Selects a list of "Department" objects from the database, returning them as
+        /// departments. Any filter applied before the call of this method will affect the
+        /// returned results.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A list with a set of departments from the database.
+        /// </returns>
+        public List<Department> Select()
+        {
+            List<Department> departments = new();
+
+            using (var db = new SqliteConnection(CONNECTION_STRING))
+            {
+                db.Open();
+
+                SqliteCommand command = db.CreateCommand();
+                command.CommandText = SQLSelect();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Department department = new()
+                        {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1)
+                        };
+
+                        departments.Add(department);
+                    }
+                }
+            }
+
+            ClearParameters();
+
+            return departments;
         }
     }
 }

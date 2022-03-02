@@ -20,92 +20,27 @@ namespace shopping_api.Handler.Default
         /// </returns>
         public Response<Cart> List()
         {
-            List<Cart> carts = new();
-
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
+                CartEntity cartEntity = new();
+                cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
+
+                Result.Data = cartEntity.Select();
+
+                foreach (Cart cart in Result.Data)
                 {
-                    db.Open();
+                    ProductCartEntity productCartEntity = new();
+                    productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
+                    productCartEntity.Filters.CartId = cart.Id;
 
-                    CartEntity cartEntity = new();
-                    cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
-                    cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = cartEntity.Join();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            Cart cart = new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Subtotal = reader.GetDecimal(1),
-                                Discount = reader.GetDecimal(2),
-                                Shipping = reader.GetDecimal(3),
-                                Total = reader.GetDecimal(4),
-                                CreatedAt = reader.GetDateTime(5),
-                                User = new()
-                                {
-                                    Id = reader.GetInt32(8),
-                                    Username = reader.GetString(9),
-                                    Name = reader.GetString(10)
-                                },
-                                Coupon = !reader.IsDBNull(11) ? new()
-                                {
-                                    Id = reader.GetInt32(11),
-                                    Code = reader.GetString(12),
-                                    Description = reader.GetString(13),
-                                    Discount = reader.GetDecimal(14)
-                                } : null,
-                                ProductCarts = new()
-                            };
-
-                            ProductCartEntity productCartEntity = new();
-                            productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
-                            productCartEntity.Filters.CartId = cart.Id;
-
-                            SqliteCommand subCommand = db.CreateCommand();
-                            subCommand.CommandText = productCartEntity.Join();
-
-                            using (var subReader = subCommand.ExecuteReader())
-                            {
-                                while (subReader.Read())
-                                {
-                                    cart.ProductCarts.Add(new()
-                                    {
-                                        Id = subReader.GetInt32(0),
-                                        Price = subReader.GetDecimal(1),
-                                        Quantity = subReader.GetInt32(2),
-                                        Total = subReader.GetDecimal(3),
-                                        AddedAt = subReader.GetDateTime(4),
-                                        CartId = subReader.GetInt32(5),
-                                        ProductId = subReader.GetInt32(6),
-                                        Product = new()
-                                        {
-                                            Id = subReader.GetInt32(7),
-                                            Code = subReader.GetString(8),
-                                            Name = subReader.GetString(9),
-                                            Price = subReader.GetDecimal(10),
-                                            Stock = subReader.GetInt32(11)
-                                        }
-                                    });
-                                }
-                            }
-
-                            carts.Add(cart);
-                        }
-                    }
+                    cart.ProductCarts = productCartEntity.Select();
                 }
             }
             catch (Exception ex)
             {
                 Result.Status.Capture(ex);
             }
-
-            Result.Data = carts;
 
             return Result;
         }
@@ -125,81 +60,20 @@ namespace shopping_api.Handler.Default
 
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
+                CartEntity cartEntity = new();
+                cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
+                cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
+                cartEntity.Filters.Id = _cartId;
+
+                Result.Data = cartEntity.Select();
+
+                foreach (Cart cart in Result.Data)
                 {
-                    db.Open();
+                    ProductCartEntity productCartEntity = new();
+                    productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
+                    productCartEntity.Filters.CartId = cart.Id;
 
-                    CartEntity cartEntity = new();
-                    cartEntity.Relations.Bind(new UserEntity(), EntityRelation.RelationMode.FULL);
-                    cartEntity.Relations.Bind(new CouponEntity(), EntityRelation.RelationMode.OPTIONAL);
-                    cartEntity.Filters.Id = _cartId;
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = cartEntity.Join();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            Cart cart = new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Subtotal = reader.GetDecimal(1),
-                                Discount = reader.GetDecimal(2),
-                                Shipping = reader.GetDecimal(3),
-                                Total = reader.GetDecimal(4),
-                                CreatedAt = reader.GetDateTime(5),
-                                User = new()
-                                {
-                                    Id = reader.GetInt32(8),
-                                    Username = reader.GetString(9),
-                                    Name = reader.GetString(10)
-                                },
-                                Coupon = !reader.IsDBNull(11) ? new()
-                                {
-                                    Id = reader.GetInt32(11),
-                                    Code = reader.GetString(12),
-                                    Description = reader.GetString(13),
-                                    Discount = reader.GetDecimal(14)
-                                } : null,
-                                ProductCarts = new()
-                            };
-
-                            ProductCartEntity productCartEntity = new();
-                            productCartEntity.Relations.Bind(new ProductEntity(), EntityRelation.RelationMode.FULL);
-                            productCartEntity.Filters.CartId = cart.Id;
-
-                            SqliteCommand subCommand = db.CreateCommand();
-                            subCommand.CommandText = productCartEntity.Join();
-
-                            using (var subReader = subCommand.ExecuteReader())
-                            {
-                                while (subReader.Read())
-                                {
-                                    cart.ProductCarts.Add(new()
-                                    {
-                                        Id = subReader.GetInt32(0),
-                                        Price = subReader.GetDecimal(1),
-                                        Quantity = subReader.GetInt32(2),
-                                        Total = subReader.GetDecimal(3),
-                                        AddedAt = subReader.GetDateTime(4),
-                                        CartId = subReader.GetInt32(5),
-                                        ProductId = subReader.GetInt32(6),
-                                        Product = new()
-                                        {
-                                            Id = subReader.GetInt32(7),
-                                            Code = subReader.GetString(8),
-                                            Name = subReader.GetString(9),
-                                            Price = subReader.GetDecimal(10),
-                                            Stock = subReader.GetInt32(11)
-                                        }
-                                    });
-                                }
-                            }
-
-                            carts.Add(cart);
-                        }                       
-                    }
+                    cart.ProductCarts = productCartEntity.Select();
                 }
             }
             catch (Exception ex)
@@ -244,7 +118,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -281,7 +155,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -317,7 +191,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Insert();
+                                subCommand.CommandText = cartEntity.SQLInsert();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -333,7 +207,7 @@ namespace shopping_api.Handler.Default
                                 cartEntity.Filters.UserId = _userId;
 
                                 subCommand = db.CreateCommand();
-                                subCommand.CommandText = cartEntity.Join();
+                                subCommand.CommandText = cartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -407,7 +281,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -445,7 +319,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Select();
+                                subCommand.CommandText = productCartEntity.SQLSelect();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -471,7 +345,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productEntity.Select();
+                                subCommand.CommandText = productEntity.SQLSelect();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -513,7 +387,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Insert();
+                                subCommand.CommandText = productCartEntity.SQLInsert();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -533,7 +407,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productEntity.Update();
+                                subCommand.CommandText = productEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -551,7 +425,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -592,7 +466,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -686,7 +560,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -724,7 +598,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -795,7 +669,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productEntity.Update();
+                                subCommand.CommandText = productEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -814,7 +688,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Update();
+                                subCommand.CommandText = productCartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -834,7 +708,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -875,7 +749,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -952,7 +826,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -991,7 +865,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Select();
+                                subCommand.CommandText = productCartEntity.SQLSelect();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1037,7 +911,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Delete();
+                                subCommand.CommandText = productCartEntity.SQLDelete();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1057,7 +931,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productEntity.Select();
+                                subCommand.CommandText = productEntity.SQLSelect();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1089,7 +963,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productEntity.Update();
+                                subCommand.CommandText = productEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1107,7 +981,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1148,7 +1022,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1224,7 +1098,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1262,7 +1136,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1295,7 +1169,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Delete();
+                                subCommand.CommandText = productCartEntity.SQLDelete();
 
                                 if (subCommand.ExecuteNonQuery() == 0)
                                 {
@@ -1318,7 +1192,7 @@ namespace shopping_api.Handler.Default
 
                                         subCommand = db.CreateCommand();
                                         subCommand.Transaction = transaction;
-                                        subCommand.CommandText = productEntity.Update();
+                                        subCommand.CommandText = productEntity.SQLUpdate();
 
                                         if (subCommand.ExecuteNonQuery() != 1)
                                         {
@@ -1357,7 +1231,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1434,7 +1308,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1482,7 +1356,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = couponEntity.Select();
+                                subCommand.CommandText = couponEntity.SQLSelect();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1513,7 +1387,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1532,7 +1406,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1573,7 +1447,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1648,7 +1522,7 @@ namespace shopping_api.Handler.Default
 
                         SqliteCommand command = db.CreateCommand();
                         command.Transaction = transaction;
-                        command.CommandText = cartEntity.Join();
+                        command.CommandText = cartEntity.SQLJoin();
 
                         using (var reader = command.ExecuteReader())
                         {
@@ -1697,7 +1571,7 @@ namespace shopping_api.Handler.Default
 
                                 SqliteCommand subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {
@@ -1716,7 +1590,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = productCartEntity.Join();
+                                subCommand.CommandText = productCartEntity.SQLJoin();
 
                                 using (var subReader = subCommand.ExecuteReader())
                                 {
@@ -1757,7 +1631,7 @@ namespace shopping_api.Handler.Default
 
                                 subCommand = db.CreateCommand();
                                 subCommand.Transaction = transaction;
-                                subCommand.CommandText = cartEntity.Update();
+                                subCommand.CommandText = cartEntity.SQLUpdate();
 
                                 if (subCommand.ExecuteNonQuery() != 1)
                                 {

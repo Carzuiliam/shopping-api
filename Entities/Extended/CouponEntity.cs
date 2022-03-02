@@ -65,7 +65,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -107,7 +107,7 @@ namespace shopping_api.Entities.Extended
                 set 
                 {
                     _id = value;
-                    Entity.AddQueryFilter("CPN_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("CPN_ID", _id));
                 }
             }
 
@@ -121,7 +121,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _code = value;
-                    Entity.AddQueryFilter("CPN_CODE", _code);
+                    Entity.QueryFilters.Add(new EntityField("CPN_CODE", _code));
                 }
             }
 
@@ -135,7 +135,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _description = value;
-                    Entity.AddQueryFilter("CPN_DESCRIPTION", _description);
+                    Entity.QueryFilters.Add(new EntityField("CPN_DESCRIPTION", _description));
                 }
             }
 
@@ -149,7 +149,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _discount = value;
-                    Entity.AddQueryFilter("CPN_DISCOUNT", _discount);
+                    Entity.QueryFilters.Add(new EntityField("CPN_DISCOUNT", _discount));
                 }
             }
         }
@@ -192,7 +192,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("CPN_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("CPN_ID", _id));
                 }
             }
 
@@ -206,7 +206,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _code = value;
-                    Entity.AddFieldValue("CPN_CODE", _code);
+                    Entity.FieldValues.Add(new EntityField("CPN_CODE", _code));
                 }
             }
 
@@ -220,7 +220,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _description = value;
-                    Entity.AddFieldValue("CPN_DESCRIPTION", _description);
+                    Entity.FieldValues.Add(new EntityField("CPN_DESCRIPTION", _description));
                 }
             }
 
@@ -234,7 +234,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _discount = value;
-                    Entity.AddFieldValue("CPN_DISCOUNT", _discount);
+                    Entity.FieldValues.Add(new EntityField("CPN_DISCOUNT", _discount));
                 }
             }
         }

@@ -1,4 +1,6 @@
-﻿using shopping_api.Entities.Default;
+﻿using Microsoft.Data.Sqlite;
+using shopping_api.Entities.Default;
+using shopping_api.Models;
 using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Entities.Extended
@@ -65,7 +67,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -87,7 +89,7 @@ namespace shopping_api.Entities.Extended
             private string _name = "";
             private decimal _price = decimal.Zero;
             private int _stock = 0;
-            private int _ProductId = 0;
+            private int _productId = 0;
             private int _departmentId = 0;
 
             /// <summary>
@@ -110,7 +112,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddQueryFilter("PRD_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("PRD_ID", _id));
                 }
             }
 
@@ -124,7 +126,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _code = value;
-                    Entity.AddQueryFilter("PRD_CODE", _code);
+                    Entity.QueryFilters.Add(new EntityField("PRD_CODE", _code));
                 }
             }
 
@@ -138,7 +140,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddQueryFilter("PRD_NAME", _name);
+                    Entity.QueryFilters.Add(new EntityField("PRD_NAME", _name));
                 }
             }
 
@@ -152,7 +154,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _price = value;
-                    Entity.AddQueryFilter("PRD_PRICE", _price);
+                    Entity.QueryFilters.Add(new EntityField("PRD_PRICE", _price));
                 }
             }
 
@@ -166,7 +168,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _stock = value;
-                    Entity.AddQueryFilter("PRD_STOCK", _stock);
+                    Entity.QueryFilters.Add(new EntityField("PRD_STOCK", _stock));
                 }
             }
 
@@ -176,11 +178,11 @@ namespace shopping_api.Entities.Extended
             /// </summary>
             public int ProductId
             {
-                get => _ProductId;
+                get => _productId;
                 set
                 {
-                    _ProductId = value;
-                    Entity.AddQueryFilter("BRN_ID", _ProductId);
+                    _productId = value;
+                    Entity.QueryFilters.Add(new EntityField("BRN_ID", _productId));
                 }
             }
 
@@ -194,7 +196,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _departmentId = value;
-                    Entity.AddQueryFilter("DPR_ID", _departmentId);
+                    Entity.QueryFilters.Add(new EntityField("DPR_ID", _departmentId));
                 }
             }
         }
@@ -217,7 +219,7 @@ namespace shopping_api.Entities.Extended
             private string _name = "";
             private decimal _price = decimal.Zero;
             private int _stock = 0;
-            private int _ProductId = 0;
+            private int _productId = 0;
             private int _departmentId = 0;
 
             /// <summary>
@@ -240,7 +242,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("PRD_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("PRD_ID", _id));
                 }
             }
 
@@ -254,7 +256,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _code = value;
-                    Entity.AddFieldValue("PRD_CODE", _code);
+                    Entity.FieldValues.Add(new EntityField("PRD_CODE", _code));
                 }
             }
 
@@ -268,7 +270,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddFieldValue("PRD_NAME", _name);
+                    Entity.FieldValues.Add(new EntityField("PRD_NAME", _name));
                 }
             }
 
@@ -282,7 +284,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _price = value;
-                    Entity.AddFieldValue("PRD_PRICE", _price);
+                    Entity.FieldValues.Add(new EntityField("PRD_PRICE", _price));
                 }
             }
 
@@ -296,7 +298,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _stock = value;
-                    Entity.AddFieldValue("PRD_STOCK", _stock);
+                    Entity.FieldValues.Add(new EntityField("PRD_STOCK", _stock));
                 }
             }
 
@@ -306,11 +308,11 @@ namespace shopping_api.Entities.Extended
             /// </summary>
             public int ProductId
             {
-                get => _ProductId;
+                get => _productId;
                 set
                 {
-                    _ProductId = value;
-                    Entity.AddFieldValue("BRN_ID", _ProductId);
+                    _productId = value;
+                    Entity.FieldValues.Add(new EntityField("BRN_ID", _productId));
                 }
             }
 
@@ -323,10 +325,69 @@ namespace shopping_api.Entities.Extended
                 get => _departmentId;
                 set
                 {
-                    _stock = value;
-                    Entity.AddFieldValue("DPR_ID", _departmentId);
+                    _departmentId = value;
+                    Entity.FieldValues.Add(new EntityField("DPR_ID", _departmentId));
                 }
             }
+        }
+
+        /// <summary>
+        ///     Selects a list of "Product" objects from the database, returning them as
+        /// products. Any filter applied before the call of this method will affect the
+        /// returned results.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A list with a set of products from the database.
+        /// </returns>
+        public List<Product> Select()
+        {
+            List<Product> products = new();
+
+            using (var db = new SqliteConnection(CONNECTION_STRING))
+            {
+                db.Open();
+
+                SqliteCommand command = db.CreateCommand();
+                command.CommandText = IsBinded ? SQLJoin() : SQLSelect();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Product product = new()
+                        {
+                            Id = reader.GetInt32(0),
+                            Code = reader.GetString(1),
+                            Name = reader.GetString(2),
+                            Price = reader.GetDecimal(3),
+                            Stock = reader.GetInt32(4)
+                        };
+
+                        if (IsBinded)
+                        {
+                            product.Brand = new()
+                            {
+                                Id = reader.GetInt32(7),
+                                Code = reader.GetString(8),
+                                Name = reader.GetString(9)
+                            };
+
+                            product.Department = new()
+                            {
+                                Id = reader.GetInt32(10),
+                                Name = reader.GetString(11)
+                            };
+                        }
+
+                        products.Add(product);
+                    }
+                }
+            }
+
+            ClearParameters();
+
+            return products;
         }
     }
 }

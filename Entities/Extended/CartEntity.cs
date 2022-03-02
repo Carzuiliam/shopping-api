@@ -1,4 +1,6 @@
-﻿using shopping_api.Entities.Default;
+﻿using Microsoft.Data.Sqlite;
+using shopping_api.Entities.Default;
+using shopping_api.Models;
 using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Entities.Extended
@@ -65,7 +67,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -111,7 +113,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddQueryFilter("CRT_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("CRT_ID", _id));
                 }
             }
 
@@ -125,7 +127,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _subtotal = value;
-                    Entity.AddQueryFilter("CRT_SUBTOTAL", _subtotal);
+                    Entity.QueryFilters.Add(new EntityField("CRT_SUBTOTAL", _subtotal));
                 }
             }
 
@@ -139,7 +141,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _discount = value;
-                    Entity.AddQueryFilter("CRT_DISCOUNT", _discount);
+                    Entity.QueryFilters.Add(new EntityField("CRT_DISCOUNT", _discount));
                 }
             }
 
@@ -153,7 +155,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _shipping = value;
-                    Entity.AddQueryFilter("CRT_SHIPPING", _shipping);
+                    Entity.QueryFilters.Add(new EntityField("CRT_SHIPPING", _shipping));
                 }
             }
 
@@ -167,7 +169,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _total = value;
-                    Entity.AddQueryFilter("CRT_TOTAL", _total);
+                    Entity.QueryFilters.Add(new EntityField("CRT_TOTAL", _total));
                 }
             }
 
@@ -181,7 +183,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _createdAt = value;
-                    Entity.AddQueryFilter("CRT_CREATED_AT", _createdAt);
+                    Entity.QueryFilters.Add(new EntityField("CRT_CREATED_AT", _createdAt));
                 }
             }
 
@@ -195,7 +197,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _userId = value;
-                    Entity.AddQueryFilter("USR_ID", _userId);
+                    Entity.QueryFilters.Add(new EntityField("USR_ID", _userId));
                 }
             }
 
@@ -209,7 +211,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _couponId = value;
-                    Entity.AddQueryFilter("CPN_ID", _couponId);
+                    Entity.QueryFilters.Add(new EntityField("CPN_ID", _couponId));
                 }
             }
         }
@@ -256,7 +258,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("CRT_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("CRT_ID", _id));
                 }
             }
 
@@ -270,7 +272,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _subtotal = value;
-                    Entity.AddFieldValue("CRT_SUBTOTAL", _subtotal);
+                    Entity.FieldValues.Add(new EntityField("CRT_SUBTOTAL", _subtotal));
                 }
             }
 
@@ -284,7 +286,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _discount = value;
-                    Entity.AddFieldValue("CRT_DISCOUNT", _discount);
+                    Entity.FieldValues.Add(new EntityField("CRT_DISCOUNT", _discount));
                 }
             }
 
@@ -298,7 +300,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _shipping = value;
-                    Entity.AddFieldValue("CRT_SHIPPING", _shipping);
+                    Entity.FieldValues.Add(new EntityField("CRT_SHIPPING", _shipping));
                 }
             }
 
@@ -312,7 +314,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _total = value;
-                    Entity.AddFieldValue("CRT_TOTAL", _total);
+                    Entity.FieldValues.Add(new EntityField("CRT_TOTAL", _total));
                 }
             }
 
@@ -326,7 +328,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _createdAt = value;
-                    Entity.AddFieldValue("CRT_CREATED_AT", _createdAt);
+                    Entity.FieldValues.Add(new EntityField("CRT_CREATED_AT", _createdAt));
                 }
             }
 
@@ -340,7 +342,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _userId = value;
-                    Entity.AddFieldValue("USR_ID", _userId);
+                    Entity.FieldValues.Add(new EntityField("USR_ID", _userId));
                 }
             }
 
@@ -354,9 +356,73 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _couponId = value;
-                    Entity.AddFieldValue("CPN_ID", _couponId);
+                    Entity.FieldValues.Add(new EntityField("CPN_ID", _couponId));
                 }
             }
+        }
+
+        /// <summary>
+        ///     Selects a list of "Cart" objects from the database, returning them as carts.
+        /// Any filter applied before the call of this method will affect the returned results.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A list with a set of carts from the database.
+        /// </returns>
+        public List<Cart> Select()
+        {
+            List<Cart> carts = new();
+
+            using (var db = new SqliteConnection(CONNECTION_STRING))
+            {
+                db.Open();
+
+                SqliteCommand command = db.CreateCommand();
+                command.CommandText = IsBinded ? SQLJoin() : SQLSelect();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Cart cart = new()
+                        {
+                            Id = reader.GetInt32(0),
+                            Subtotal = reader.GetDecimal(1),
+                            Discount = reader.GetDecimal(2),
+                            Shipping = reader.GetDecimal(3),
+                            Total = reader.GetDecimal(4),
+                            CreatedAt = reader.GetDateTime(5)
+                        };
+
+                        if (IsBinded)
+                        {
+                            cart.User = new()
+                            {
+                                Id = reader.GetInt32(8),
+                                Username = reader.GetString(9),
+                                Name = reader.GetString(10)
+                            };
+
+                            if (!reader.IsDBNull(11))
+                            {
+                                cart.Coupon = new()
+                                {
+                                    Id = reader.GetInt32(11),
+                                    Code = reader.GetString(12),
+                                    Description = reader.GetString(13),
+                                    Discount = reader.GetDecimal(14)
+                                };
+                            };
+                        }
+
+                        carts.Add(cart);
+                    }
+                }
+            }
+
+            ClearParameters();
+
+            return carts;
         }
     }
 }

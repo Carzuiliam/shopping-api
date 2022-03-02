@@ -20,39 +20,16 @@ namespace shopping_api.Handler.Extended
         /// </returns>
         public Response<Brand> List()
         {
-            List<Brand> brands = new();
-
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
-                {
-                    db.Open();
+                BrandEntity brandEntity = new();
 
-                    BrandEntity brandEntity = new();
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = brandEntity.Select();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            brands.Add(new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Code = reader.GetString(1),
-                                Name = reader.GetString(2)
-                            });
-                        }
-                    }
-                }
+                Result.Data = brandEntity.Select();
             }
             catch (Exception ex)
             {
                 Result.Status.Capture(ex);
             }
-
-            Result.Data = brands;
 
             return Result;
         }
@@ -68,40 +45,17 @@ namespace shopping_api.Handler.Extended
         /// </returns>
         public Response<Brand> Get(int _brandId)
         {
-            List<Brand> brands = new();
-
             try
             {
-                using (var db = new SqliteConnection(CONNECTION_STRING))
-                {
-                    db.Open();
+                BrandEntity brandEntity = new();
+                brandEntity.Filters.Id = _brandId;
 
-                    BrandEntity brandEntity = new();
-                    brandEntity.Filters.Id = _brandId;
-
-                    SqliteCommand command = db.CreateCommand();
-                    command.CommandText = brandEntity.Select();
-
-                    using (var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read())
-                        {
-                            brands.Add(new()
-                            {
-                                Id = reader.GetInt32(0),
-                                Code = reader.GetString(1),
-                                Name = reader.GetString(2)
-                            });
-                        }                      
-                    }
-                }
+                Result.Data = brandEntity.Select();
             }
             catch (Exception ex)
             {
                 Result.Status.Capture(ex);
             }
-
-            Result.Data = brands;
 
             return Result;
         }

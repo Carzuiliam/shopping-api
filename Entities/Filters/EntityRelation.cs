@@ -11,7 +11,7 @@ namespace Shopping_API.Entities.Attributes
     {
         /// <summary>
         ///     Defines how two entities can be binded. The <see cref="FULL"/> value
-        /// allows to perform <see cref="BaseEntity.Join()"/> as a INNER JOIN command,
+        /// allows to perform <see cref="BaseEntity.SQLJoin()"/> as a INNER JOIN command,
         /// while the <see cref="OPTIONAL"/> value allows to perform the same method
         /// as a LEFT JOIN.
         /// </summary>

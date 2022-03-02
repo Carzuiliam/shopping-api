@@ -1,4 +1,6 @@
-﻿using shopping_api.Entities.Default;
+﻿using Microsoft.Data.Sqlite;
+using shopping_api.Entities.Default;
+using shopping_api.Models;
 using Shopping_API.Entities.Attributes;
 
 namespace shopping_api.Entities.Extended
@@ -65,7 +67,7 @@ namespace shopping_api.Entities.Extended
             /// <param name="_relationType">How the relation will be performed (full or optional).</param>
             public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
             {
-                Entity.AddEntityFilter(_entity, _relationType);
+                Entity.BindedEntities.Add(new EntityRelation(_entity, _relationType));
             }
         }
 
@@ -106,7 +108,7 @@ namespace shopping_api.Entities.Extended
                 set 
                 {
                     _id = value;
-                    Entity.AddQueryFilter("USR_ID", _id);
+                    Entity.QueryFilters.Add(new EntityField("USR_ID", _id));
                 }
             }
 
@@ -120,7 +122,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _username = value;
-                    Entity.AddQueryFilter("USR_USERNAME", _username);
+                    Entity.QueryFilters.Add(new EntityField("USR_USERNAME", _username));
                 }
             }
 
@@ -134,7 +136,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddQueryFilter("USR_NAME", _name);
+                    Entity.QueryFilters.Add(new EntityField("USR_NAME", _name));
                 }
             }            
         }
@@ -176,7 +178,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _id = value;
-                    Entity.AddFieldValue("USR_ID", _id);
+                    Entity.FieldValues.Add(new EntityField("USR_ID", _id));
                 }
             }
 
@@ -190,7 +192,7 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _username = value;
-                    Entity.AddFieldValue("USR_USERNAME", _username);
+                    Entity.FieldValues.Add(new EntityField("USR_USERNAME", _username));
                 }
             }
 
@@ -204,9 +206,49 @@ namespace shopping_api.Entities.Extended
                 set
                 {
                     _name = value;
-                    Entity.AddFieldValue("USR_NAME", _name);
+                    Entity.FieldValues.Add(new EntityField("USR_NAME", _name));
                 }
-            }            
+            }
+        }
+
+        /// <summary>
+        ///     Selects a list of "User" objects from the database, returning them as user.
+        /// Any filter applied before the call of this method will affect the returned results.
+        /// </summary>
+        /// 
+        /// <returns>
+        ///     A list with a set of users from the database.
+        /// </returns>
+        public List<User> Select()
+        {
+            List<User> users = new();
+
+            using (var db = new SqliteConnection(CONNECTION_STRING))
+            {
+                db.Open();
+
+                SqliteCommand command = db.CreateCommand();
+                command.CommandText = SQLSelect();
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        User user = new()
+                        {
+                            Id = reader.GetInt32(0),
+                            Username = reader.GetString(1),
+                            Name = reader.GetString(2)
+                        };
+
+                        users.Add(user);
+                    }
+                }
+            }
+
+            ClearParameters();
+
+            return users;
         }
     }
 }

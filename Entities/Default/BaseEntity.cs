@@ -1,4 +1,5 @@
-﻿using Shopping_API.Entities.Attributes;
+﻿using Microsoft.Data.Sqlite;
+using Shopping_API.Entities.Attributes;
 using System.Text;
 
 namespace shopping_api.Entities.Default
@@ -7,43 +8,73 @@ namespace shopping_api.Entities.Default
     ///     Defines a base entity. In this project/context, an entity is an object that
     /// acts as an "additional layer" between the application itself and an element (e.g.,
     /// a table) on a SQL database. Its objective is to optimize how the application
-    /// performs operations on the given database by building queries, filtering attributes
+    /// performs operations on the given database by executing queries, filtering attributes
     /// and handling query parameters.
     /// </summary>
     public class BaseEntity
     {
         /// <summary>
+        ///     Contains the connection string utilized to access the database.
+        /// </summary>
+        protected static readonly string CONNECTION_STRING = "DataSource=D:/Projects/Source Codes/C#/CS-ShoppingApi/Database/DataSource/db_main.sqlite";
+
+        /// <summary>
+        ///     Contains the SQl connection with the database.
+        /// </summary>
+        protected static readonly SqliteConnection DBConnection = new(CONNECTION_STRING);
+
+        /// <summary>
+        ///     Contains the current transaction being performed in the database.
+        /// </summary>
+        protected SqliteTransaction? CurrentTransaction { get; set; }
+
+        /// <summary>
         ///     Contains a list of entities to bind with the current entity. Binded entities
         /// are used to perform cross-entity operations like INNER or LEFT joins using the
-        /// <see cref="Join()"/> method.
+        /// <see cref="SQLJoin()"/> method.
         /// </summary>
-        private List<EntityRelation> BindedEntities { get; set; }
+        protected List<EntityRelation> BindedEntities { get; set; }
 
         /// <summary>
         ///     Contains a list of fields to be used as query filters. These filters affects
         /// how the queries are performed -- for example, you can add filters on this field
-        /// before calling the <see cref="Select()"/> method in order to perform a "SELECT
+        /// before calling the <see cref="SQLSelect()"/> method in order to perform a "SELECT
         /// (...) WHERE (...)" operation.
         /// </summary>
-        private List<EntityField> QueryFilters { get; set; }
+        protected List<EntityField> QueryFilters { get; set; }
 
         /// <summary>
         ///     Contains a list of fields to be set values for an element on the database.
         /// For example, you can add values to set into database objects before calling the
-        /// <see cref="Update()"/> method in order to perform a "UPDATE (...) SET (...)
+        /// <see cref="SQLUpdate()"/> method in order to perform a "UPDATE (...) SET (...)
         /// WHERE (...)" operation.
         /// </summary>
-        private List<EntityField> FieldValues { get; set; }
+        protected List<EntityField> FieldValues { get; set; }
         
         /// <summary>
         ///     Contains the name of the current entity.
         /// </summary>
-        public string EntityName { get; set; }
+        private string EntityName { get; set; }
 
         /// <summary>
         ///     Contains the (primary) key of the current entity.
         /// </summary>
-        public string EntityKey { get; set; }
+        private string EntityKey { get; set; }
+
+        /// <summary>
+        ///     Tells if the entity currently contains binded entities.
+        /// </summary>
+        protected bool IsBinded => BindedEntities.Count > 0;
+
+        /// <summary>
+        ///     Tells if the entity currently contains any filter.
+        /// </summary>
+        protected bool IsFiltered => QueryFilters.Count > 0;
+
+        /// <summary>
+        ///     Tells if the entity currently contains any value filled.
+        /// </summary>
+        protected bool IsFilled => FieldValues.Count > 0;
 
         /// <summary>
         ///     Creates a new <see cref="BaseEntity"/> object.
@@ -51,7 +82,7 @@ namespace shopping_api.Entities.Default
         /// 
         /// <param name="_entityName">The name of the entity.</param>
         /// <param name="_entityKey">The (primary) key of the entity.</param>
-        public BaseEntity(string _entityName, string _entityKey)
+        protected BaseEntity(string _entityName, string _entityKey)
         {
             EntityName = _entityName;
             EntityKey = _entityKey;
@@ -64,44 +95,11 @@ namespace shopping_api.Entities.Default
         /// <summary>
         ///     Clears all the parameters in the entity.
         /// </summary>
-        private void ClearParameters()
+        protected void ClearParameters()
         {
             BindedEntities.Clear();
             QueryFilters.Clear();
             FieldValues.Clear();
-        }
-
-        /// <summary>
-        ///     Adds (binds) a new entity filter to the entity.
-        /// </summary>
-        /// 
-        /// <param name="_entity">The entity to bind with the current entity.</param>
-        /// <param name="_relationType">How the relation will be performed (full or optional).</param>
-        protected void AddEntityFilter(BaseEntity _entity, EntityRelation.RelationMode _relationType)
-        {
-            BindedEntities.Add(new EntityRelation(_entity, _relationType));
-        }
-
-        /// <summary>
-        ///     Adds a new attribute to use as a query filter.
-        /// </summary>
-        /// 
-        /// <param name="_attribute">The name of the attribute.</param>
-        /// <param name="_value">The value of the attribute added.</param>
-        protected void AddQueryFilter(string _attribute, object _value)
-        {
-            QueryFilters.Add(new EntityField(_attribute, _value));
-        }
-
-        /// <summary>
-        ///     Adds a new attribute to use as a field value.
-        /// </summary>
-        /// 
-        /// <param name="_attribute">The name of the attribute.</param>
-        /// <param name="_value">The value of the attribute added.</param>
-        protected void AddFieldValue(string _attribute, object _value)
-        {
-            FieldValues.Add(new EntityField(_attribute, _value));
         }
 
         /// <summary>
@@ -112,7 +110,7 @@ namespace shopping_api.Entities.Default
         /// <returns>
         ///     A SQL command string with the full INSERT command, e.g., "INSERT (...) VALUES (...)".
         /// </returns>
-        public string Insert()
+        public string SQLInsert()
         {
             StringBuilder strBuilder = new();
 
@@ -134,8 +132,6 @@ namespace shopping_api.Entities.Default
 
             strBuilder.Append(')');
 
-            ClearParameters();
-
             return strBuilder.ToString();
         }
 
@@ -149,7 +145,7 @@ namespace shopping_api.Entities.Default
         /// <returns>
         ///     A SQL command string with the full SELECT command, e.g., "SELECT (...) WHERE (...)".
         /// </returns>
-        public string Select()
+        public string SQLSelect()
         {
             StringBuilder strBuilder = new();
 
@@ -160,8 +156,6 @@ namespace shopping_api.Entities.Default
                 string strColumn = (i == 0) ? " WHERE {0} = {1}" : " AND {0} = {1}";
                 strBuilder.AppendFormat(strColumn, QueryFilters[i].Attribute, QueryFilters[i].Value);
             }
-
-            ClearParameters();
 
             return strBuilder.ToString();
         }
@@ -175,7 +169,7 @@ namespace shopping_api.Entities.Default
         /// <returns>
         ///     A SQL command string with the full SELECT command, e.g., "SELECT (...) JOIN (...) WHERE (...)".
         /// </returns>
-        public string Join()
+        public string SQLJoin()
         {
             StringBuilder strBuilder = new();
 
@@ -223,8 +217,6 @@ namespace shopping_api.Entities.Default
                 strBuilder.AppendFormat(strColumn, QueryFilters[i].Attribute, QueryFilters[i].Value);
             }
 
-            ClearParameters();
-
             return strBuilder.ToString();
         }
 
@@ -236,7 +228,7 @@ namespace shopping_api.Entities.Default
         /// <returns>
         ///     A SQL command string with the full UPDATE command, e.g., "UPDATE (...) SET (...) WHERE (...)".
         /// </returns>
-        public string Update()
+        public string SQLUpdate()
         {
             StringBuilder strBuilder = new();
 
@@ -254,8 +246,6 @@ namespace shopping_api.Entities.Default
                 strBuilder.AppendFormat(strColumn, QueryFilters[i].Attribute, QueryFilters[i].Value);
             }
 
-            ClearParameters();
-
             return strBuilder.ToString();
         }
 
@@ -267,7 +257,7 @@ namespace shopping_api.Entities.Default
         /// <returns>
         ///     A SQL command string with the full DELETE command, e.g., "DELETE (...) WHERE (...)".
         /// </returns>
-        public string Delete()
+        public string SQLDelete()
         {
             StringBuilder strBuilder = new();
 
@@ -278,8 +268,6 @@ namespace shopping_api.Entities.Default
                 string strColumn = (i == 0) ? " WHERE {0} = {1}" : " AND {0} = {1}";
                 strBuilder.AppendFormat(strColumn, QueryFilters[i].Attribute, QueryFilters[i].Value);
             }
-
-            ClearParameters();
 
             return strBuilder.ToString();
         }

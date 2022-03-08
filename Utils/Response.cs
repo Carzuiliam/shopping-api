@@ -1,4 +1,4 @@
-﻿namespace shopping_api.Utils
+﻿namespace Shopping_API.Utils
 {
     /// <summary>
     ///     Defines an object that represents a response for requests performed to the API.

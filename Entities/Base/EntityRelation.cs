@@ -1,6 +1,4 @@
-﻿using shopping_api.Entities.Default;
-
-namespace Shopping_API.Entities.Attributes
+﻿namespace Shopping_API.Entities.Base
 {
     /// <summary>
     ///     Defines a relation (binding) between entities. When two entities are binded,

@@ -1,10 +1,10 @@
 ﻿using Microsoft.Data.Sqlite;
-using shopping_api.Entities.Extended;
-using shopping_api.Models;
-using shopping_api.Utils;
-using Shopping_API.Entities.Attributes;
+using Shopping_API.Entities.Base;
+using Shopping_API.Entities.Extended;
+using Shopping_API.Models;
+using Shopping_API.Utils;
 
-namespace shopping_api.Handler.Default
+namespace Shopping_API.Handler.Default
 {
     /// <summary>
     ///     Defines the corresponding handler for carts.

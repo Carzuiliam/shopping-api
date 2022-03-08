@@ -1,8 +1,7 @@
 ﻿using Microsoft.Data.Sqlite;
-using Shopping_API.Entities.Attributes;
 using System.Text;
 
-namespace shopping_api.Entities.Default
+namespace Shopping_API.Entities.Base
 {
     /// <summary>
     ///     Defines a base entity. In this project/context, an entity is an object that
@@ -14,44 +13,6 @@ namespace shopping_api.Entities.Default
     public class BaseEntity
     {
         /// <summary>
-        ///     Contains the connection string utilized to access the database.
-        /// </summary>
-        protected static readonly string CONNECTION_STRING = "DataSource=D:/Projects/Source Codes/C#/CS-ShoppingApi/Database/DataSource/db_main.sqlite";
-
-        /// <summary>
-        ///     Contains the SQl connection with the database.
-        /// </summary>
-        protected static readonly SqliteConnection DBConnection = new(CONNECTION_STRING);
-
-        /// <summary>
-        ///     Contains the current transaction being performed in the database.
-        /// </summary>
-        protected SqliteTransaction? CurrentTransaction { get; set; }
-
-        /// <summary>
-        ///     Contains a list of entities to bind with the current entity. Binded entities
-        /// are used to perform cross-entity operations like INNER or LEFT joins using the
-        /// <see cref="SQLJoin()"/> method.
-        /// </summary>
-        protected List<EntityRelation> BindedEntities { get; set; }
-
-        /// <summary>
-        ///     Contains a list of fields to be used as query filters. These filters affects
-        /// how the queries are performed -- for example, you can add filters on this field
-        /// before calling the <see cref="SQLSelect()"/> method in order to perform a "SELECT
-        /// (...) WHERE (...)" operation.
-        /// </summary>
-        protected List<EntityField> QueryFilters { get; set; }
-
-        /// <summary>
-        ///     Contains a list of fields to be set values for an element on the database.
-        /// For example, you can add values to set into database objects before calling the
-        /// <see cref="SQLUpdate()"/> method in order to perform a "UPDATE (...) SET (...)
-        /// WHERE (...)" operation.
-        /// </summary>
-        protected List<EntityField> FieldValues { get; set; }
-        
-        /// <summary>
         ///     Contains the name of the current entity.
         /// </summary>
         private string EntityName { get; set; }
@@ -62,19 +23,42 @@ namespace shopping_api.Entities.Default
         private string EntityKey { get; set; }
 
         /// <summary>
+        ///     Contains a list of entities to bind with the current entity. Binded entities
+        /// are used to perform cross-entity operations like INNER or LEFT joins using the
+        /// <see cref="SQLJoin()"/> method.
+        /// </summary>
+        public List<EntityRelation> BindedEntities { get; set; }
+
+        /// <summary>
+        ///     Contains a list of fields to be used as query filters. These filters affects
+        /// how the queries are performed -- for example, you can add filters on this field
+        /// before calling the <see cref="SQLSelect()"/> method in order to perform a "SELECT
+        /// (...) WHERE (...)" operation.
+        /// </summary>
+        public List<EntityField> QueryFilters { get; set; }
+
+        /// <summary>
+        ///     Contains a list of fields to be set values for an element on the database.
+        /// For example, you can add values to set into database objects before calling the
+        /// <see cref="SQLUpdate()"/> method in order to perform a "UPDATE (...) SET (...)
+        /// WHERE (...)" operation.
+        /// </summary>
+        public List<EntityField> FieldValues { get; set; }
+
+        /// <summary>
         ///     Tells if the entity currently contains binded entities.
         /// </summary>
-        protected bool IsBinded => BindedEntities.Count > 0;
+        public bool IsBinded => BindedEntities.Count > 0;
 
         /// <summary>
         ///     Tells if the entity currently contains any filter.
         /// </summary>
-        protected bool IsFiltered => QueryFilters.Count > 0;
+        public bool IsFiltered => QueryFilters.Count > 0;
 
         /// <summary>
         ///     Tells if the entity currently contains any value filled.
         /// </summary>
-        protected bool IsFilled => FieldValues.Count > 0;
+        public bool IsFilled => FieldValues.Count > 0;
 
         /// <summary>
         ///     Creates a new <see cref="BaseEntity"/> object.

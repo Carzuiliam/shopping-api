@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using shopping_api.Models;
-using shopping_api.Utils;
-using shopping_api.Handler.Default;
+using Shopping_API.Models;
+using Shopping_API.Utils;
+using Shopping_API.Handler.Default;
 
-namespace shopping_api.Controllers
+namespace Shopping_API.Controllers
 {
     /// <summary>
     ///     Defines a corresponding controller for departments.

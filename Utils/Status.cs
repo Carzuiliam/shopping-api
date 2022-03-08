@@ -1,4 +1,4 @@
-﻿namespace shopping_api.Utils
+﻿namespace Shopping_API.Utils
 {
     /// <summary>
     ///     Defines an object that contains the status for a request performed to the API.

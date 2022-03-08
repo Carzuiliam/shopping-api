@@ -1,4 +1,4 @@
-﻿namespace Shopping_API.Entities.Attributes
+﻿namespace Shopping_API.Entities.Base
 {
     /// <summary>
     ///     Defines a field in an entity. This field consists basically as a mapping between

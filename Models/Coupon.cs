@@ -1,4 +1,4 @@
-﻿namespace shopping_api.Models
+﻿namespace Shopping_API.Models
 {
     /// <summary>
     ///     Defines a object which represents a discount coupon.

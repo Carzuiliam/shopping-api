@@ -1,10 +1,10 @@
 ﻿using Microsoft.Data.Sqlite;
-using shopping_api.Entities.Extended;
-using shopping_api.Handler.Default;
-using shopping_api.Models;
-using shopping_api.Utils;
+using Shopping_API.Entities.Extended;
+using Shopping_API.Handler.Default;
+using Shopping_API.Models;
+using Shopping_API.Utils;
 
-namespace shopping_api.Handler.Extended
+namespace Shopping_API.Handler.Extended
 {
     /// <summary>
     ///     Defines the corresponding handler for brands.

@@ -1,10 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Shopping_API.Entities.Connection;
 using Shopping_API.Entities.Extended;
-using Shopping_API.Handler.Default;
 using Shopping_API.Models;
 using Shopping_API.Utils;
 
-namespace Shopping_API.Handler.Extended
+namespace Shopping_API.Api.Handler
 {
     /// <summary>
     ///     Defines the corresponding handler for brands.
@@ -20,11 +19,13 @@ namespace Shopping_API.Handler.Extended
         /// </returns>
         public Response<Brand> List()
         {
+            EntityDB entityDB = new();
+
             try
             {
                 BrandEntity brandEntity = new();
 
-                Result.Data = brandEntity.Select();
+                Result.Data = brandEntity.Select(entityDB);
             }
             catch (Exception ex)
             {
@@ -45,12 +46,14 @@ namespace Shopping_API.Handler.Extended
         /// </returns>
         public Response<Brand> Get(int _brandId)
         {
+            EntityDB entityDB = new();
+
             try
             {
                 BrandEntity brandEntity = new();
                 brandEntity.Filters.Id = _brandId;
 
-                Result.Data = brandEntity.Select();
+                Result.Data = brandEntity.Select(entityDB);
             }
             catch (Exception ex)
             {

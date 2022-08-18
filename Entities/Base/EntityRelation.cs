@@ -33,6 +33,7 @@
         /// <summary>
         ///     Creates a new <see cref="EntityRelation"/> object.
         /// </summary>
+        /// 
         /// <param name="_bindedEntity">The entity to bind.</param>
         /// <param name="_relationType">The relation type between the entities.</param>
         public EntityRelation(BaseEntity _bindedEntity, RelationMode _relationType)

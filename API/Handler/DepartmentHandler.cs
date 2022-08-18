@@ -1,10 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
-using Shopping_API.Entities;
+﻿using Shopping_API.Entities.Connection;
 using Shopping_API.Entities.Extended;
 using Shopping_API.Models;
 using Shopping_API.Utils;
 
-namespace Shopping_API.Handler.Default
+namespace Shopping_API.Api.Handler
 {
     /// <summary>
     ///     Defines the corresponding handler for departments.
@@ -20,11 +19,17 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<Department> List()
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 DepartmentEntity departmentEntity = new();
 
-                Result.Data = departmentEntity.Select();
+                Result.Data = departmentEntity.Select(entityDB);
+            
+                entityDB.Finish();
             }
             catch (Exception ex)
             {
@@ -45,12 +50,18 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<Department> Get(int _departmentId)
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 DepartmentEntity departmentEntity = new();
                 departmentEntity.Filters.Id = _departmentId;
 
-                Result.Data = departmentEntity.Select();
+                Result.Data = departmentEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {

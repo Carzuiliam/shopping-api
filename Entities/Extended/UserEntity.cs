@@ -1,5 +1,4 @@
-﻿using Microsoft.Data.Sqlite;
-using Shopping_API.Models;
+﻿using Shopping_API.Models;
 using Shopping_API.Entities.Base;
 using Shopping_API.Entities.Relations;
 using Shopping_API.Entities.Filters;
@@ -42,21 +41,21 @@ namespace Shopping_API.Entities.Extended
         }
 
         /// <summary>
-        ///     Selects a list of "User" objects from the database, returning them as user.
-        /// Any filter applied before the call of this method will affect the returned results.
+        ///     Selects a list of "User" objects from the database using an <see cref="EntityDB"/>
+        /// object, returning them as users. Any filter applied before the call of this method
+        /// will affect the returned results.
         /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
         /// 
         /// <returns>
         ///     A list with a set of users from the database.
         /// </returns>
-        public List<User> Select()
+        public List<User> Select(EntityDB _entityDB)
         {
             List<User> users = new();
-            EntityDB entityDB = new();
 
-            entityDB.Start();
-
-            using (var reader = entityDB.Query(SQLSelect()))
+            using (var reader = _entityDB.Query(SQLSelect()))
             {
                 while (reader.Read())
                 {
@@ -70,8 +69,6 @@ namespace Shopping_API.Entities.Extended
                     users.Add(user);
                 }
             }
-
-            entityDB.Finish();
 
             ClearParameters();
 

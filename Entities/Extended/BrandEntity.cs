@@ -42,21 +42,21 @@ namespace Shopping_API.Entities.Extended
         }
 
         /// <summary>
-        ///     Selects a list of "Brand" objects from the database, returning them as brands.
-        /// Any filter applied before the call of this method will affect the returned results.
+        ///     Selects a list of "Brand" objects from the database using an <see cref="EntityDB"/>
+        /// object, returning them as brands. Any filter applied before the call of this method
+        /// will affect the returned results.
         /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
         /// 
         /// <returns>
         ///     A list with a set of brands from the database.
         /// </returns>
-        public List<Brand> Select()
+        public List<Brand> Select(EntityDB _entityDB)
         {
             List<Brand> brands = new();
-            EntityDB entityDB = new();
 
-            entityDB.Start();
-
-            using (var reader = entityDB.Query(SQLSelect()))
+            using (var reader = _entityDB.Query(SQLSelect()))
             {
                 while (reader.Read())
                 {
@@ -70,8 +70,6 @@ namespace Shopping_API.Entities.Extended
                     brands.Add(brand);
                 }
             }
-
-            entityDB.Finish();
 
             ClearParameters();
 

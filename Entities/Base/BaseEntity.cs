@@ -48,17 +48,17 @@ namespace Shopping_API.Entities.Base
         /// <summary>
         ///     Tells if the entity currently contains binded entities.
         /// </summary>
-        public bool IsBinded => BindedEntities.Count > 0;
+        protected bool IsBinded => BindedEntities.Count > 0;
 
         /// <summary>
         ///     Tells if the entity currently contains any filter.
         /// </summary>
-        public bool IsFiltered => QueryFilters.Count > 0;
+        protected bool IsFiltered => QueryFilters.Count > 0;
 
         /// <summary>
         ///     Tells if the entity currently contains any value filled.
         /// </summary>
-        public bool IsFilled => FieldValues.Count > 0;
+        protected bool IsFilled => FieldValues.Count > 0;
 
         /// <summary>
         ///     Creates a new <see cref="BaseEntity"/> object.
@@ -94,7 +94,7 @@ namespace Shopping_API.Entities.Base
         /// <returns>
         ///     A SQL command string with the full INSERT command, e.g., "INSERT (...) VALUES (...)".
         /// </returns>
-        public string SQLInsert()
+        protected string SQLInsert()
         {
             StringBuilder strBuilder = new();
 
@@ -129,7 +129,7 @@ namespace Shopping_API.Entities.Base
         /// <returns>
         ///     A SQL command string with the full SELECT command, e.g., "SELECT (...) WHERE (...)".
         /// </returns>
-        public string SQLSelect()
+        protected string SQLSelect()
         {
             StringBuilder strBuilder = new();
 
@@ -153,7 +153,7 @@ namespace Shopping_API.Entities.Base
         /// <returns>
         ///     A SQL command string with the full SELECT command, e.g., "SELECT (...) JOIN (...) WHERE (...)".
         /// </returns>
-        public string SQLJoin()
+        protected string SQLJoin()
         {
             StringBuilder strBuilder = new();
 
@@ -212,7 +212,7 @@ namespace Shopping_API.Entities.Base
         /// <returns>
         ///     A SQL command string with the full UPDATE command, e.g., "UPDATE (...) SET (...) WHERE (...)".
         /// </returns>
-        public string SQLUpdate()
+        protected string SQLUpdate()
         {
             StringBuilder strBuilder = new();
 
@@ -241,7 +241,7 @@ namespace Shopping_API.Entities.Base
         /// <returns>
         ///     A SQL command string with the full DELETE command, e.g., "DELETE (...) WHERE (...)".
         /// </returns>
-        public string SQLDelete()
+        protected string SQLDelete()
         {
             StringBuilder strBuilder = new();
 

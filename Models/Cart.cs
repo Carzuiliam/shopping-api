@@ -49,7 +49,7 @@
         /// <summary>
         ///     Contains the list of the products in the cart.
         /// </summary>
-        public List<ProductCart> ProductCarts { get; set; }
+        public List<ProductCart> ProductCart { get; set; }
 
         /// <summary>
         ///     Creates a new instance of a <see cref="Cart"/> object.
@@ -64,7 +64,7 @@
             CreatedAt = DateTime.Now;
             User = new();
             Coupon = null;
-            ProductCarts = new();
+            ProductCart = new();
         }
     }
 }

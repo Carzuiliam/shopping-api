@@ -42,22 +42,38 @@ namespace Shopping_API.Entities.Extended
         }
 
         /// <summary>
-        ///     Selects a list of "ProductCart" objects from the database, returning them as
-        /// products in a cart. Any filter applied before the call of this method will affect
-        /// the returned results.
+        ///     Performs an insert of a "Product" object into the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the insert operation.
         /// </summary>
         /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
         /// <returns>
-        ///     A list with a set of products in a cart from the database.
+        ///     <see cref="true"/> if inserted successfully, <see cref="false"/> otherwise.
         /// </returns>
-        public List<ProductCart> Select()
+        public bool Insert(EntityDB _entityDB)
+        {
+            return _entityDB.NonQuery(SQLInsert()) == 1;
+        }
+
+        /// <summary>
+        ///     Selects a list of "ProductCart" objects from the database using an
+        /// <see cref="EntityDB"/> object, returning them as products from a cart.
+        /// Any filter applied before the call of this method will affect the returned
+        /// results.
+        /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     A list with a set of products from a cart from the database.
+        /// </returns>
+        public List<ProductCart> Select(EntityDB _entityDB)
         {
             List<ProductCart> productsCart = new();
-            EntityDB entityDB = new();
 
-            entityDB.Start();
-
-            using (var reader = entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
+            using (var reader = _entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
             {
                 while (reader.Read())
                 {
@@ -91,6 +107,46 @@ namespace Shopping_API.Entities.Extended
             ClearParameters();
 
             return productsCart;
+        }
+
+        /// <summary>
+        ///     Performs an update on a "ProductCart" object from the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the update operation.
+        /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if updated successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Update(EntityDB _entityDB)
+        {
+            int updatedRows = _entityDB.NonQuery(SQLUpdate());
+
+            ClearParameters();
+
+            return updatedRows == 1;
+        }
+
+        /// <summary>
+        ///     Performs a delete for a "ProductCart" object from the database using the
+        /// <see cref="EntityDB"/> object. Any filter applied before the call of this
+        /// method will affect the delete operation.
+        /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if deleted successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Delete(EntityDB _entityDB)
+        {
+            int deletedRows = _entityDB.NonQuery(SQLDelete());
+
+            ClearParameters();
+
+            return deletedRows == 1;
         }
     }
 }

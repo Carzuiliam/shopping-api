@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Shopping_API.Api.Handler;
 using Shopping_API.Models;
 using Shopping_API.Utils;
-using Shopping_API.Handler.Default;
 
-namespace Shopping_API.Controllers
+namespace Shopping_API.Api.Controller
 {
     /// <summary>
     ///     Defines a corresponding controller for products.

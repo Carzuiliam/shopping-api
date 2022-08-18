@@ -1,9 +1,10 @@
 ﻿using Shopping_API.Entities.Base;
+using Shopping_API.Entities.Connection;
 using Shopping_API.Entities.Extended;
 using Shopping_API.Models;
 using Shopping_API.Utils;
 
-namespace Shopping_API.Handler.Default
+namespace Shopping_API.Api.Handler
 {
     /// <summary>
     ///     Defines the corresponding handler for products.
@@ -19,13 +20,19 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<Product> List()
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 ProductEntity productEntity = new();
                 productEntity.Relations.Bind(new BrandEntity(), EntityRelation.RelationMode.FULL);
                 productEntity.Relations.Bind(new DepartmentEntity(), EntityRelation.RelationMode.FULL);
 
-                Result.Data = productEntity.Select();
+                Result.Data = productEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {
@@ -46,14 +53,20 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<Product> Get(int _productId)
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 ProductEntity productEntity = new();
                 productEntity.Relations.Bind(new BrandEntity(), EntityRelation.RelationMode.FULL);
                 productEntity.Relations.Bind(new DepartmentEntity(), EntityRelation.RelationMode.FULL);
                 productEntity.Filters.Id = _productId;
 
-                Result.Data = productEntity.Select();                
+                Result.Data = productEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {

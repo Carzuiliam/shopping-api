@@ -1,9 +1,9 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Shopping_API.Entities.Connection;
 using Shopping_API.Entities.Extended;
 using Shopping_API.Models;
 using Shopping_API.Utils;
 
-namespace Shopping_API.Handler.Default
+namespace Shopping_API.Api.Handler
 {
     /// <summary>
     ///     Defines the corresponding handler for users.
@@ -19,11 +19,17 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<User> List()
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 UserEntity userEntity = new();
 
-                Result.Data = userEntity.Select();
+                Result.Data = userEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {
@@ -44,12 +50,18 @@ namespace Shopping_API.Handler.Default
         /// </returns>
         public Response<User> Get(int _userId)
         {
+            EntityDB entityDB = new();
+
             try
             {
+                entityDB.Start();
+
                 UserEntity userEntity = new();
                 userEntity.Filters.Id = _userId;
 
-                Result.Data = userEntity.Select();
+                Result.Data = userEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {

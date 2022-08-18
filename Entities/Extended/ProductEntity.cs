@@ -40,24 +40,23 @@ namespace Shopping_API.Entities.Extended
             Filters = new(this);
             Values = new(this);
         }
-                
+
         /// <summary>
-        ///     Selects a list of "Product" objects from the database, returning them as
-        /// products. Any filter applied before the call of this method will affect the
-        /// returned results.
+        ///     Selects a list of "Product" objects from the database using an
+        /// <see cref="EntityDB"/> object, returning them as products. Any filter applied
+        /// before the call of this method will affect the returned results.
         /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
         /// 
         /// <returns>
         ///     A list with a set of products from the database.
         /// </returns>
-        public List<Product> Select()
+        public List<Product> Select(EntityDB _entityDB)
         {
             List<Product> products = new();
-            EntityDB entityDB = new();
-
-            entityDB.Start();
             
-            using (var reader = entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
+            using (var reader = _entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
             {
                 while (reader.Read())
                 {
@@ -90,11 +89,29 @@ namespace Shopping_API.Entities.Extended
                 }
             }
 
-            entityDB.Finish();
-
             ClearParameters();
 
             return products;
+        }
+
+        /// <summary>
+        ///     Performs an update on a "Product" object from the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the update operation.
+        /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if updated successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Update(EntityDB _entityDB)
+        {
+            int updatedRows = _entityDB.NonQuery(SQLUpdate());
+
+            ClearParameters();
+
+            return updatedRows == 1;
         }
     }
 }

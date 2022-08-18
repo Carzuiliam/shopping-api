@@ -1,7 +1,12 @@
-﻿using shopping_api.Entities.Default;
-using Shopping_API.Entities.Attributes;
+﻿using Microsoft.Data.Sqlite;
+using Shopping_API.Models;
+using Shopping_API.Entities.Base;
+using Shopping_API.Entities.Relations;
+using Shopping_API.Entities.Filters;
+using Shopping_API.Entities.Values;
+using Shopping_API.Entities.Connection;
 
-namespace shopping_api.Entities.Extended
+namespace Shopping_API.Entities.Extended
 {
     /// <summary>
     ///     Defines a custom entity, which represents the SQL object "ProductCart" from the SQL
@@ -37,296 +42,111 @@ namespace shopping_api.Entities.Extended
         }
 
         /// <summary>
-        ///     Defines an object that contains the relations between the <see cref="ProductCartEntity"/>
-        /// and other entities.
+        ///     Performs an insert of a "Product" object into the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the insert operation.
         /// </summary>
-        public class ProductCartRelations
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if inserted successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Insert(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="ProductCartEntity"/>.
-            /// </summary>
-            public ProductCartEntity Entity { set; get; }
-
-            /// <summary>
-            ///     Creates a new <see cref="ProductCartRelations"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public ProductCartRelations(ProductCartEntity _entity)
-            {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     Adds (binds) a entity to the given <see cref="ProductCartEntity"/>.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The entity to bind with the current entity.</param>
-            /// <param name="_relationType">How the relation will be performed (full or optional).</param>
-            public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
-            {
-                Entity.AddEntityFilter(_entity, _relationType);
-            }
+            return _entityDB.NonQuery(SQLInsert()) == 1;
         }
 
         /// <summary>
-        ///     Contains a mapping between SQL attributes for the "ProductCart" database object
-        /// and the <see cref="ProductCartEntity"/> class, which is utilized to filter values
-        /// from the same database object.
+        ///     Selects a list of "ProductCart" objects from the database using an
+        /// <see cref="EntityDB"/> object, returning them as products from a cart.
+        /// Any filter applied before the call of this method will affect the returned
+        /// results.
         /// </summary>
-        public class ProductCartFilters
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     A list with a set of products from a cart from the database.
+        /// </returns>
+        public List<ProductCart> Select(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="ProductCartEntity"/>.
-            /// </summary>
-            public ProductCartEntity Entity { set; get; }
+            List<ProductCart> productsCart = new();
 
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private decimal _price = decimal.Zero;
-            private int _quantity = 0;
-            private decimal _total = decimal.Zero;
-            private DateTime _addedAt = DateTime.Now;
-            private int _cartId = 0;
-            private int _productId = 0;
-
-            /// <summary>
-            ///     Creates a new <see cref="ProductCartFilters"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public ProductCartFilters(ProductCartEntity _entity)
+            using (var reader = _entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
             {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set
+                while (reader.Read())
                 {
-                    _id = value;
-                    Entity.AddQueryFilter("PRC_ID", _id);
+                    ProductCart productCart = new()
+                    {
+                        Id = reader.GetInt32(0),
+                        Price = reader.GetDecimal(1),
+                        Quantity = reader.GetInt32(2),
+                        Total = reader.GetDecimal(3),
+                        AddedAt = reader.GetDateTime(4),
+                        CartId = reader.GetInt32(5),
+                        ProductId = reader.GetInt32(6)
+                    };
+
+                    if (IsBinded)
+                    {
+                        productCart.Product = new()
+                        {
+                            Id = reader.GetInt32(7),
+                            Code = reader.GetString(8),
+                            Name = reader.GetString(9),
+                            Price = reader.GetDecimal(10),
+                            Stock = reader.GetInt32(11)
+                        };
+                    }
+
+                    productsCart.Add(productCart);
                 }
             }
+ 
+            ClearParameters();
 
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Price
-            {
-                get => _price;
-                set
-                {
-                    _price = value;
-                    Entity.AddQueryFilter("PRC_PRICE", _price);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Quantity
-            {
-                get => _quantity;
-                set
-                {
-                    _quantity = value;
-                    Entity.AddQueryFilter("PRC_QUANTITY", _quantity);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Total
-            {
-                get => _total;
-                set
-                {
-                    _total = value;
-                    Entity.AddQueryFilter("PRC_TOTAL", _total);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public DateTime AddedAt
-            {
-                get => _addedAt;
-                set
-                {
-                    _addedAt = value;
-                    Entity.AddQueryFilter("PRC_ADDED_AT", _addedAt);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int CartId
-            {
-                get => _cartId;
-                set
-                {
-                    _cartId = value;
-                    Entity.AddQueryFilter("CRT_ID", _cartId);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int ProductId
-            {
-                get => _productId;
-                set
-                {
-                    _productId = value;
-                    Entity.AddQueryFilter("PRD_ID", _productId);
-                }
-            }
+            return productsCart;
         }
 
         /// <summary>
-        ///     Contains a mapping between SQL attributes for the "ProductCart" database object
-        /// and the <see cref="ProductCartEntity"/> class, utilized to set values to the attributes
-        /// in the same database object.
+        ///     Performs an update on a "ProductCart" object from the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the update operation.
         /// </summary>
-        public class ProductCartValues
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if updated successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Update(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="ProductCartEntity"/>.
-            /// </summary>
-            public ProductCartEntity Entity { set; get; }
+            int updatedRows = _entityDB.NonQuery(SQLUpdate());
 
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private decimal _price = Decimal.Zero;
-            private int _quantity = 0;
-            private decimal _total = decimal.Zero;
-            private DateTime _addedAt = DateTime.Now;
-            private int _cartId = 0;
-            private int _productId = 0;
+            ClearParameters();
 
-            /// <summary>
-            ///     Creates a new <see cref="ProductCartValues"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public ProductCartValues(ProductCartEntity _entity)
-            {
-                Entity = _entity;
-            }
+            return updatedRows == 1;
+        }
 
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set
-                {
-                    _id = value;
-                    Entity.AddFieldValue("PRC_ID", _id);
-                }
-            }
+        /// <summary>
+        ///     Performs a delete for a "ProductCart" object from the database using the
+        /// <see cref="EntityDB"/> object. Any filter applied before the call of this
+        /// method will affect the delete operation.
+        /// </summary>
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if deleted successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Delete(EntityDB _entityDB)
+        {
+            int deletedRows = _entityDB.NonQuery(SQLDelete());
 
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Price
-            {
-                get => _price;
-                set
-                {
-                    _price = value;
-                    Entity.AddFieldValue("PRC_PRICE", _price);
-                }
-            }
+            ClearParameters();
 
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Quantity
-            {
-                get => _quantity;
-                set
-                {
-                    _quantity = value;
-                    Entity.AddFieldValue("PRC_QUANTITY", _quantity);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Total
-            {
-                get => _total;
-                set
-                {
-                    _total = value;
-                    Entity.AddFieldValue("PRC_TOTAL", _total);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public DateTime AddedAt
-            {
-                get => _addedAt;
-                set
-                {
-                    _addedAt = value;
-                    Entity.AddFieldValue("PRC_ADDED_AT", _addedAt);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int CartId
-            {
-                get => _cartId;
-                set
-                {
-                    _cartId = value;
-                    Entity.AddFieldValue("CRT_ID", _cartId);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="ProductCartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int ProductId
-            {
-                get => _productId;
-                set
-                {
-                    _productId = value;
-                    Entity.AddFieldValue("PRD_ID", _productId);
-                }
-            }
+            return deletedRows == 1;
         }
     }
 }

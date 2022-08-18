@@ -1,7 +1,12 @@
-﻿using shopping_api.Entities.Default;
-using Shopping_API.Entities.Attributes;
+﻿using Microsoft.Data.Sqlite;
+using Shopping_API.Entities.Base;
+using Shopping_API.Entities.Connection;
+using Shopping_API.Entities.Filters;
+using Shopping_API.Entities.Relations;
+using Shopping_API.Entities.Values;
+using Shopping_API.Models;
 
-namespace shopping_api.Entities.Extended
+namespace Shopping_API.Entities.Extended
 {
     /// <summary>
     ///     Defines a custom entity, which represents the SQL object "Cart" from the SQL
@@ -37,326 +42,98 @@ namespace shopping_api.Entities.Extended
         }
 
         /// <summary>
-        ///     Defines an object that contains the relations between the <see cref="CartEntity"/>
-        /// and other entities.
+        ///     Performs an insert of a "Cart" object into the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the insert operation.
         /// </summary>
-        public class CartRelations
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if inserted successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Insert(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="CartEntity"/>.
-            /// </summary>
-            public CartEntity Entity { set; get; }
-
-            /// <summary>
-            ///     Creates a new <see cref="CartRelations"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CartRelations(CartEntity _entity)
-            {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     Adds (binds) an entity to the given <see cref="CartEntity"/>.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The entity to bind with the current entity.</param>
-            /// <param name="_relationType">How the relation will be performed (full or optional).</param>
-            public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
-            {
-                Entity.AddEntityFilter(_entity, _relationType);
-            }
+            return _entityDB.NonQuery(SQLInsert()) == 1;
         }
 
         /// <summary>
-        ///     Contains a mapping between SQL attributes for the "Cart" database object
-        /// and the <see cref="CartEntity"/> class, which is utilized to filter values
-        /// from the same database object.
+        ///     Selects a list of "Cart" objects from the database using an <see cref="EntityDB"/>
+        /// object, returning them as carts. Any filter applied before the call of this method
+        /// will affect the returned results.
         /// </summary>
-        public class CartFilters
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     A list with a set of carts from a cart from the database.
+        /// </returns>
+        public List<Cart> Select(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="CartEntity"/>.
-            /// </summary>
-            public CartEntity Entity { set; get; }
+            List<Cart> carts = new();
 
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private decimal _subtotal = decimal.Zero;
-            private decimal _discount = decimal.Zero;
-            private decimal _shipping = decimal.Zero;
-            private decimal _total = decimal.Zero;
-            private DateTime _createdAt = DateTime.Now;
-            private int _userId = 0;
-            private int _couponId = 0;
-
-            /// <summary>
-            ///     Creates a new <see cref="CartFilters"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CartFilters(CartEntity _entity)
+            using (var reader = _entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
             {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set
+                while (reader.Read())
                 {
-                    _id = value;
-                    Entity.AddQueryFilter("CRT_ID", _id);
+                    Cart cart = new()
+                    {
+                        Id = reader.GetInt32(0),
+                        Subtotal = reader.GetDecimal(1),
+                        Discount = reader.GetDecimal(2),
+                        Shipping = reader.GetDecimal(3),
+                        Total = reader.GetDecimal(4),
+                        CreatedAt = reader.GetDateTime(5)
+                    };
+
+                    if (IsBinded)
+                    {
+                        cart.User = new()
+                        {
+                            Id = reader.GetInt32(8),
+                            Username = reader.GetString(9),
+                            Name = reader.GetString(10)
+                        };
+
+                        if (!reader.IsDBNull(11))
+                        {
+                            cart.Coupon = new()
+                            {
+                                Id = reader.GetInt32(11),
+                                Code = reader.GetString(12),
+                                Description = reader.GetString(13),
+                                Discount = reader.GetDecimal(14)
+                            };
+                        };
+                    }
+
+                    carts.Add(cart);
                 }
             }
 
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Subtotal
-            {
-                get => _subtotal;
-                set
-                {
-                    _subtotal = value;
-                    Entity.AddQueryFilter("CRT_SUBTOTAL", _subtotal);
-                }
-            }
+            ClearParameters();
 
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Discount
-            {
-                get => _discount;
-                set
-                {
-                    _discount = value;
-                    Entity.AddQueryFilter("CRT_DISCOUNT", _discount);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Shipping
-            {
-                get => _shipping;
-                set
-                {
-                    _shipping = value;
-                    Entity.AddQueryFilter("CRT_SHIPPING", _shipping);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Total
-            {
-                get => _total;
-                set
-                {
-                    _total = value;
-                    Entity.AddQueryFilter("CRT_TOTAL", _total);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public DateTime CreatedAt
-            {
-                get => _createdAt;
-                set
-                {
-                    _createdAt = value;
-                    Entity.AddQueryFilter("CRT_CREATED_AT", _createdAt);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int UserId
-            {
-                get => _userId;
-                set
-                {
-                    _userId = value;
-                    Entity.AddQueryFilter("USR_ID", _userId);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int CouponId
-            {
-                get => _couponId;
-                set
-                {
-                    _couponId = value;
-                    Entity.AddQueryFilter("CPN_ID", _couponId);
-                }
-            }
+            return carts;
         }
 
         /// <summary>
-        ///     Contains a mapping between SQL attributes for the "Cart" database object
-        /// and the <see cref="CartEntity"/> class, utilized to set values to the attributes
-        /// in the same database object.
+        ///     Performs an update on a "Cart" object from the database using the
+        /// <see cref="EntityDB"/> object. Any value applied before the call of this
+        /// method will affect the update operation.
         /// </summary>
-        public class CartValues
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     <see cref="true"/> if updated successfully, <see cref="false"/> otherwise.
+        /// </returns>
+        public bool Update(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="CartEntity"/>.
-            /// </summary>
-            public CartEntity Entity { set; get; }
+            int updatedRows = _entityDB.NonQuery(SQLUpdate());
 
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private decimal _subtotal = decimal.Zero;
-            private decimal _discount = decimal.Zero;
-            private decimal _shipping = decimal.Zero;
-            private decimal _total = decimal.Zero;
-            private DateTime _createdAt = DateTime.Now;
-            private int _userId = 0;
-            private int _couponId = 0;
+            ClearParameters();
 
-            /// <summary>
-            ///     Creates a new <see cref="CartValues"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CartValues(CartEntity _entity)
-            {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set
-                {
-                    _id = value;
-                    Entity.AddFieldValue("CRT_ID", _id);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Subtotal
-            {
-                get => _subtotal;
-                set
-                {
-                    _subtotal = value;
-                    Entity.AddFieldValue("CRT_SUBTOTAL", _subtotal);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Discount
-            {
-                get => _discount;
-                set
-                {
-                    _discount = value;
-                    Entity.AddFieldValue("CRT_DISCOUNT", _discount);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Shipping
-            {
-                get => _shipping;
-                set
-                {
-                    _shipping = value;
-                    Entity.AddFieldValue("CRT_SHIPPING", _shipping);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Total
-            {
-                get => _total;
-                set
-                {
-                    _total = value;
-                    Entity.AddFieldValue("CRT_TOTAL", _total);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public DateTime CreatedAt
-            {
-                get => _createdAt;
-                set
-                {
-                    _createdAt = value;
-                    Entity.AddFieldValue("CRT_CREATED_AT", _createdAt);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int UserId
-            {
-                get => _userId;
-                set
-                {
-                    _userId = value;
-                    Entity.AddFieldValue("USR_ID", _userId);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CartEntity"/>
-            /// attribute.
-            /// </summary>
-            public int CouponId
-            {
-                get => _couponId;
-                set
-                {
-                    _couponId = value;
-                    Entity.AddFieldValue("CPN_ID", _couponId);
-                }
-            }
+            return updatedRows == 1;
         }
-    }
+    }    
 }

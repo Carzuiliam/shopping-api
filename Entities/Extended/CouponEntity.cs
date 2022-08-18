@@ -1,7 +1,11 @@
-﻿using shopping_api.Entities.Default;
-using Shopping_API.Entities.Attributes;
+﻿using Shopping_API.Entities.Base;
+using Shopping_API.Entities.Relations;
+using Shopping_API.Entities.Filters;
+using Shopping_API.Entities.Values;
+using Shopping_API.Models;
+using Shopping_API.Entities.Connection;
 
-namespace shopping_api.Entities.Extended
+namespace Shopping_API.Entities.Extended
 {
     /// <summary>
     ///     Defines a custom entity, which represents the SQL object "Coupon" from the SQL
@@ -37,206 +41,39 @@ namespace shopping_api.Entities.Extended
         }
 
         /// <summary>
-        ///     Defines an object that contains the relations between the <see cref="CouponEntity"/>
-        /// and other entities.
+        ///     Selects a list of "Cart" objects from the database using an <see cref="EntityDB"/>
+        /// object, returning them as carts. Any filter applied before the call of this method
+        /// will affect the returned results.
         /// </summary>
-        public class CouponRelations
+        /// 
+        /// <param name="_entityDB">A target <see cref="EntityDB"/> object to perform the query.</param>
+        /// 
+        /// <returns>
+        ///     A list with a set of carts from a cart from the database.
+        /// </returns>
+        public List<Coupon> Select(EntityDB _entityDB)
         {
-            /// <summary>
-            ///     The parent <see cref="CouponEntity"/>.
-            /// </summary>
-            public CouponEntity Entity { set; get; }
+            List<Coupon> coupons = new();
 
-            /// <summary>
-            ///     Creates a new <see cref="CouponRelations"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CouponRelations(CouponEntity _entity)
+            using (var reader = _entityDB.Query(IsBinded ? SQLJoin() : SQLSelect()))
             {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     Adds (binds) an entity to the given <see cref="CouponEntity"/>.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The entity to bind with the current entity.</param>
-            /// <param name="_relationType">How the relation will be performed (full or optional).</param>
-            public void Bind(BaseEntity _entity, EntityRelation.RelationMode _relationType)
-            {
-                Entity.AddEntityFilter(_entity, _relationType);
-            }
-        }
-
-        /// <summary>
-        ///     Contains a mapping between SQL attributes for the "Coupon" database object
-        /// and the <see cref="CouponEntity"/> class, which is utilized to filter values
-        /// from the same database object.
-        /// </summary>
-        public class CouponFilters
-        {
-            /// <summary>
-            ///     The parent <see cref="CouponEntity"/>.
-            /// </summary>
-            public CouponEntity Entity { set; get; }
-
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private string _code = "";
-            private string _description = "";
-            private decimal _discount = decimal.Zero;
-
-            /// <summary>
-            ///     Creates a new <see cref="CouponFilters"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CouponFilters(CouponEntity _entity)
-            {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set 
+                while (reader.Read())
                 {
-                    _id = value;
-                    Entity.AddQueryFilter("CPN_ID", _id);
+                    Coupon cart = new()
+                    {
+                        Id = reader.GetInt32(0),
+                        Code = reader.GetString(1),
+                        Description = reader.GetString(2),
+                        Discount = reader.GetDecimal(3)
+                    };
+
+                    coupons.Add(cart);
                 }
             }
 
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public string Code
-            {
-                get => _code;
-                set
-                {
-                    _code = value;
-                    Entity.AddQueryFilter("CPN_CODE", _code);
-                }
-            }
+            ClearParameters();
 
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public string Description
-            {
-                get => _description;
-                set
-                {
-                    _description = value;
-                    Entity.AddQueryFilter("CPN_DESCRIPTION", _description);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a filter for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Discount
-            {
-                get => _discount;
-                set
-                {
-                    _discount = value;
-                    Entity.AddQueryFilter("CPN_DISCOUNT", _discount);
-                }
-            }
-        }
-
-        /// <summary>
-        ///     Contains a mapping between SQL attributes for the "Coupon" database object
-        /// and the <see cref="CouponEntity"/> class, utilized to set values to the attributes
-        /// in the same database object.
-        /// </summary>
-        public class CouponValues
-        {
-            /// <summary>
-            ///     The parent <see cref="CouponEntity"/>.
-            /// </summary>
-            public CouponEntity Entity { set; get; }
-
-            ///     Internal fields of the class.
-            private int _id = 0;
-            private string _code = "";
-            private string _description = "";
-            private decimal _discount = decimal.Zero;
-
-            /// <summary>
-            ///     Creates a new <see cref="CouponValues"/> object.
-            /// </summary>
-            /// 
-            /// <param name="_entity">The parent entity.</param>
-            public CouponValues(CouponEntity _entity)
-            {
-                Entity = _entity;
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public int Id
-            {
-                get => _id;
-                set
-                {
-                    _id = value;
-                    Entity.AddFieldValue("CPN_ID", _id);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public string Code
-            {
-                get => _code;
-                set
-                {
-                    _code = value;
-                    Entity.AddFieldValue("CPN_CODE", _code);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public string Description
-            {
-                get => _description;
-                set
-                {
-                    _description = value;
-                    Entity.AddFieldValue("CPN_DESCRIPTION", _description);
-                }
-            }
-
-            /// <summary>
-            ///     A field that contains a new value for the corresponding <see cref="CouponEntity"/>
-            /// attribute.
-            /// </summary>
-            public decimal Discount
-            {
-                get => _discount;
-                set
-                {
-                    _discount = value;
-                    Entity.AddFieldValue("CPN_DISCOUNT", _discount);
-                }
-            }
+            return coupons;
         }
     }
 }

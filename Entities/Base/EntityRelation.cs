@@ -1,6 +1,4 @@
-﻿using shopping_api.Entities.Default;
-
-namespace Shopping_API.Entities.Attributes
+﻿namespace Shopping_API.Entities.Base
 {
     /// <summary>
     ///     Defines a relation (binding) between entities. When two entities are binded,
@@ -11,7 +9,7 @@ namespace Shopping_API.Entities.Attributes
     {
         /// <summary>
         ///     Defines how two entities can be binded. The <see cref="FULL"/> value
-        /// allows to perform <see cref="BaseEntity.Join()"/> as a INNER JOIN command,
+        /// allows to perform <see cref="BaseEntity.SQLJoin()"/> as a INNER JOIN command,
         /// while the <see cref="OPTIONAL"/> value allows to perform the same method
         /// as a LEFT JOIN.
         /// </summary>
@@ -35,6 +33,7 @@ namespace Shopping_API.Entities.Attributes
         /// <summary>
         ///     Creates a new <see cref="EntityRelation"/> object.
         /// </summary>
+        /// 
         /// <param name="_bindedEntity">The entity to bind.</param>
         /// <param name="_relationType">The relation type between the entities.</param>
         public EntityRelation(BaseEntity _bindedEntity, RelationMode _relationType)

@@ -1,6 +1,6 @@
-﻿using shopping_api.Utils;
+﻿using Shopping_API.Utils;
 
-namespace shopping_api.Handler.Default
+namespace Shopping_API.Api.Handler
 {
     /// <summary>
     ///     Defines the base handler. A handler, in this context, is an object that acts as

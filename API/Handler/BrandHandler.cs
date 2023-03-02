@@ -23,9 +23,13 @@ namespace Shopping_API.Api.Handler
 
             try
             {
+                entityDB.Start();
+
                 BrandEntity brandEntity = new();
 
                 Result.Data = brandEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {
@@ -50,10 +54,14 @@ namespace Shopping_API.Api.Handler
 
             try
             {
+                entityDB.Start();
+
                 BrandEntity brandEntity = new();
                 brandEntity.Filters.Id = _brandId;
 
                 Result.Data = brandEntity.Select(entityDB);
+
+                entityDB.Finish();
             }
             catch (Exception ex)
             {
